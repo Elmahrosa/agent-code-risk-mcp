@@ -1,12 +1,9 @@
+cat > src/http/app.ts <<'TS'
 import "dotenv/config";
 import express from "express";
-import { buildMcpServer } from "../mcp/server";
-
-// ✅ Official MCP SDK Streamable HTTP transport
-import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
-
-// ✅ x402 middleware
 import { paymentMiddleware } from "@x402/express";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { buildMcpServer } from "../mcp/server.js";
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
@@ -15,10 +12,9 @@ const PAY_TO = process.env.X402_PAY_TO!;
 const NETWORK = process.env.X402_NETWORK!;
 
 if (!PAY_TO || !NETWORK) {
-  throw new Error("Missing X402_PAY_TO or X402_NETWORK in env");
+  throw new Error("Missing X402_PAY_TO or X402_NETWORK");
 }
 
-// x402 paywall: protects these routes
 app.use(
   paymentMiddleware({
     "POST /mcp/basic": {
@@ -50,20 +46,11 @@ app.use(
 
 async function handleMcp(req: any, res: any, premium: boolean) {
   const server = buildMcpServer(premium);
-
-  // Create a fresh transport per request
-  const transport = new StreamableHTTPServerTransport({
-    // Let SDK handle sessions; simplest for MVP
-    sessionIdGenerator: undefined
-  });
+  const transport = new StreamableHTTPServerTransport({});
 
   res.on("close", () => {
-    try {
-      transport.close();
-    } catch {}
-    try {
-      server.close();
-    } catch {}
+    try { transport.close(); } catch {}
+    try { server.close(); } catch {}
   });
 
   await server.connect(transport);
@@ -85,10 +72,11 @@ app.post("/mcp/premium", (req, res) =>
 );
 
 app.get("/", (_req, res) => {
-  res.type("text/plain").send(
-    "Agent Code Risk MCP Server (x402 enabled)\n\nPOST /mcp/basic\nPOST /mcp/premium\n"
-  );
+  res.type("text/plain").send("Agent Code Risk MCP Server (x402 enabled)");
 });
 
 const port = Number(process.env.PORT || 8787);
-app.listen(port, () => console.log(`Running on http://localhost:${port}`));
+app.listen(port, () => {
+  console.log(`Running on http://localhost:${port}`);
+});
+TS
