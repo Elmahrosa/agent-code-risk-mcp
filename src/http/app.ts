@@ -1,8 +1,8 @@
 import "dotenv/config";
 import express from "express";
-import { mcpExpressHandler } from "@modelcontextprotocol/express";
-import { paymentMiddleware } from "@x402/express";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { buildMcpServer } from "../mcp/server";
+import { paymentMiddleware } from "@x402/express";
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
@@ -23,11 +23,29 @@ app.use(
   })
 );
 
-app.post("/mcp/basic", mcpExpressHandler(buildMcpServer(false)));
-app.post("/mcp/premium", mcpExpressHandler(buildMcpServer(true)));
+async function handleMcp(req: any, res: any, premium: boolean) {
+  const server = buildMcpServer(premium);
+  const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
 
-app.get("/", (_, res) => {
-  res.send("Agent Code Risk MCP Server (x402 enabled)");
-});
+  res.on("close", () => {
+    transport.close();
+    server.close();
+  });
+
+  await server.connect(transport);
+  await transport.handleRequest(req, res, req.body);
+}
+
+app.post("/mcp/basic", (req, res) => handleMcp(req, res, false).catch(err => {
+  console.error(err);
+  if (!res.headersSent) res.status(500).json({ error: "Internal error" });
+}));
+
+app.post("/mcp/premium", (req, res) => handleMcp(req, res, true).catch(err => {
+  console.error(err);
+  if (!res.headersSent) res.status(500).json({ error: "Internal error" });
+}));
+
+app.get("/", (_req, res) => res.send("Agent Code Risk MCP Server (x402 enabled)"));
 
 app.listen(8787, () => console.log("Running on http://localhost:8787"));
