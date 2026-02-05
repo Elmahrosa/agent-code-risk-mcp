@@ -1,5 +1,3 @@
-# agent-code-risk-mcp
-Repository created autonomously  by Elmahrosa international 
 # Agent Code Risk MCP
 
 Agent-native MCP server for automated code risk checks with **x402 pay-per-call payments**.
