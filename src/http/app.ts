@@ -1,9 +1,12 @@
-cat > src/http/app.ts <<'TS'
 import "dotenv/config";
 import express from "express";
-import { paymentMiddleware } from "@x402/express";
+
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { buildMcpServer } from "../mcp/server.js";
+
+import { createHTTPResourceServer } from "@x402/core";
+import { evmPaymentProcessor } from "@x402/evm";
+import { paymentMiddleware } from "@x402/express";
 
 const app = express();
 app.use(express.json({ limit: "2mb" }));
@@ -15,31 +18,33 @@ if (!PAY_TO || !NETWORK) {
   throw new Error("Missing X402_PAY_TO or X402_NETWORK");
 }
 
+/**
+ * ✅ Create x402 Resource Server (REQUIRED in v2)
+ */
+const resourceServer = createHTTPResourceServer({
+  processor: evmPaymentProcessor({
+    chainId: NETWORK,
+    payTo: PAY_TO
+  })
+});
+
+/**
+ * ✅ Attach x402 middleware with resourceServer
+ */
 app.use(
   paymentMiddleware({
-    "POST /mcp/basic": {
-      description: "Agent Code Risk – Basic",
-      accepts: [
-        {
-          scheme: "x402-evm",
-          network: NETWORK,
-          payTo: PAY_TO,
-          amount: "0.002",
-          currency: "USDC"
-        }
-      ]
-    },
-    "POST /mcp/premium": {
-      description: "Agent Code Risk – Premium",
-      accepts: [
-        {
-          scheme: "x402-evm",
-          network: NETWORK,
-          payTo: PAY_TO,
-          amount: "0.05",
-          currency: "USDC"
-        }
-      ]
+    resourceServer,
+    routes: {
+      "POST /mcp/basic": {
+        description: "Agent Code Risk – Basic",
+        price: "0.002",
+        currency: "USDC"
+      },
+      "POST /mcp/premium": {
+        description: "Agent Code Risk – Premium",
+        price: "0.05",
+        currency: "USDC"
+      }
     }
   })
 );
@@ -58,14 +63,14 @@ async function handleMcp(req: any, res: any, premium: boolean) {
 }
 
 app.post("/mcp/basic", (req, res) =>
-  handleMcp(req, res, false).catch((err) => {
+  handleMcp(req, res, false).catch(err => {
     console.error(err);
     if (!res.headersSent) res.status(500).json({ error: "Internal error" });
   })
 );
 
 app.post("/mcp/premium", (req, res) =>
-  handleMcp(req, res, true).catch((err) => {
+  handleMcp(req, res, true).catch(err => {
     console.error(err);
     if (!res.headersSent) res.status(500).json({ error: "Internal error" });
   })
@@ -79,4 +84,3 @@ const port = Number(process.env.PORT || 8787);
 app.listen(port, () => {
   console.log(`Running on http://localhost:${port}`);
 });
-TS
