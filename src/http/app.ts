@@ -19,37 +19,42 @@ async function main() {
     throw new Error("Missing X402_PAY_TO or X402_NETWORK");
   }
 
-  /**
-   * ✅ Create and initialize x402 Resource Server (REQUIRED in v2)
-   */
+  // 🔹 Convert CAIP → numeric chainId
+  const chainId =
+    NETWORK.includes(":") ? Number(NETWORK.split(":")[1]) : Number(NETWORK);
+
+  // 🔹 Create & initialize x402 resource server
   const resourceServer = createHTTPResourceServer({
     processor: evmPaymentProcessor({
-      chainId: NETWORK,
+      chainId,
       payTo: PAY_TO
     })
   });
 
-  await resourceServer.initialize(); // <-- critical step
+  await resourceServer.initialize();
 
-  /**
-   * ✅ Attach x402 middleware with resourceServer
-   */
+  // 🔹 x402-protected routes
+  const routes = {
+    "POST /mcp/basic": {
+      description: "Agent Code Risk – Basic",
+      price: "0.002",
+      currency: "USDC"
+    },
+    "POST /mcp/premium": {
+      description: "Agent Code Risk – Premium",
+      price: "0.05",
+      currency: "USDC"
+    }
+  };
+
+  // ✅ CORRECT middleware call (4 args)
   app.use(
-    paymentMiddleware({
+    paymentMiddleware(
+      routes,
       resourceServer,
-      routes: {
-        "POST /mcp/basic": {
-          description: "Agent Code Risk – Basic",
-          price: "0.002",
-          currency: "USDC"
-        },
-        "POST /mcp/premium": {
-          description: "Agent Code Risk – Premium",
-          price: "0.05",
-          currency: "USDC"
-        }
-      }
-    })
+      {}, // options (required placeholder)
+      {}  // express options (required placeholder)
+    )
   );
 
   async function handleMcp(req: any, res: any, premium: boolean) {
