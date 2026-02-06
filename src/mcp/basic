@@ -1,0 +1,15 @@
+app.post("/mcp/basic", async (req: Request, res: Response) => {
+  if (!(await requirePayment(req, res, PRICE_BASIC))) return;
+
+  const { tool, diff, threshold } = req.body;
+  if (!tool || !diff) return res.status(400).json({ error: "Missing required fields: tool, diff" });
+
+  switch (tool) {
+    case "review_diff":
+      return res.json({ tool: "review_diff", tier: "basic", ...reviewDiff(diff) });
+    case "pipeline_guard":
+      return res.json({ tool: "pipeline_guard", tier: "basic", ...pipelineGuard(diff, threshold ?? 50) });
+    default:
+      return res.status(400).json({ error: `Unknown basic tool: ${tool}. Available: review_diff, pipeline_guard` });
+  }
+});
