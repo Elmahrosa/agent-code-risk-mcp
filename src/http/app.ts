@@ -1,3 +1,5 @@
+import { verifyX402PaymentOnchain } from "./x402Verify";
+
 // ─────────────────────────────────────────────────────────────
 //  src/http/app.ts — HTTP API server with manual x402 payment gating
 // ─────────────────────────────────────────────────────────────
