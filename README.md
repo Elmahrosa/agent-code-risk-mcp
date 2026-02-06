@@ -1,26 +1,27 @@
-
 # Agent Code Risk MCP
 
 **Agent Code Risk MCP** is a lightweight **MCP-compatible server** that helps AI agents and CI/CD pipelines detect risky code changes **before merge or deployment**.
 
-It is designed for **AI agent builders**, **DevOps pipelines**, and **automated reviewers** who need **fast, deterministic risk signals** with **pay-per-request (x402)** pricing.
+Designed for **AI agent builders**, **DevOps pipelines**, and **automated reviewers** who need **fast, deterministic risk signals** with **pay-per-request (x402)** pricing.
 
 ---
 
 ## 📦 Repository Structure
 
-```
-
+```text
 .
-├── index.js            # MCP server (stdio)
-├── http-server.js      # HTTP API with /mcp/basic and /mcp/premium
-├── test.js             # Complete test suite
-├── package.json        # Dependencies & scripts
-├── launch.sh           # One-command launcher
-├── README.md           # Documentation
-├── .env.example        # Config template
-└── .gitignore          # Git safety
-
+├── src/
+│   ├── core/
+│   │   └── review.ts       # Heuristic risk engine
+│   ├── http/
+│   │   └── app.ts          # Express HTTP API with manual x402 gating
+│   └── mcp/
+│       └── server.ts       # MCP stdio JSON-RPC server
+├── .env.example            # Config template
+├── .gitignore              # Git safety
+├── tsconfig.json           # TypeScript config
+├── package.json            # Dependencies & scripts
+└── README.md               # Documentation
 ````
 
 ---
@@ -29,78 +30,59 @@ It is designed for **AI agent builders**, **DevOps pipelines**, and **automated 
 
 ### MCP Tools
 
-- **review_diff**  
-  Scans a unified diff and flags risky patterns.
-
-- **pipeline_guard**  
-  Returns `ALLOW` or `BLOCK` for CI/CD automation.
-
-- **generate_fix_patch** *(premium)*  
-  Suggests structured remediation steps.
+* **review_diff** — scans a unified diff and flags risky patterns.
+* **pipeline_guard** — CI/CD gate that returns `ALLOW` or `BLOCK`.
+* **generate_fix_patch** *(premium)* — generates structured remediation suggestions.
 
 ---
 
 ## 🧭 What `review_diff` Detects
 
-`review_diff` scans **unified diffs** and flags common high-risk patterns.  
-It is intentionally fast and deterministic (heuristic-based), optimized for CI/CD loops.
+`review_diff` scans **unified diffs** and flags common high-risk patterns. It is intentionally fast and deterministic (heuristic-based), optimized for CI/CD loops.
 
 ### Detection categories (MVP)
 
-- **Injection & dynamic execution**  
-  `eval`, `Function(...)`, `exec`, shell injection patterns, unsafe SQL/command interpolation.
-
-- **Secrets & credential leakage**  
-  API keys, tokens, private keys, `.env` exposures, high-entropy strings, known key prefixes.
-
-- **Unsafe deserialization**  
-  `pickle.loads`, `yaml.load` without safe loader, similar constructs.
-
-- **Insecure crypto usage**  
-  Weak hashes (e.g. MD5), insecure random, hardcoded salts.
-
-- **Authentication / authorization risk**  
-  Auth bypasses, disabled checks, permissive ACL changes.
-
-- **Network & SSRF risk**  
-  Untrusted URLs, raw request forwarding, open redirects.
-
-- **Dangerous dependency or config changes**  
-  Disabled security headers, relaxed CORS, TLS verification off, risky CI changes.
+* **Injection & dynamic execution** — `eval`, `Function(...)`, `exec`, shell injection patterns, unsafe SQL/command interpolation.
+* **Secrets & credential leakage** — API keys, tokens, private keys, `.env` exposures, high-entropy strings, key prefixes (e.g., AWS `AKIA...`).
+* **Unsafe deserialization** — `pickle.loads`, `yaml.load` without safe loader, `unserialize`.
+* **Insecure crypto usage** — MD5/SHA-1, `Math.random`, hardcoded salts.
+* **Authentication/authorization risk** — bypass patterns, disabling auth checks, permissive ACL changes.
+* **Network & SSRF risk** — URLs from variables, raw forwarding, open redirects.
+* **Dangerous dependency or config changes** — weakened security headers, permissive CORS, TLS verification disabled, risky CI patterns.
 
 ### Outputs
 
-- `decision`: `ALLOW | WARN | BLOCK`
-- `score`: `0–100` risk score
-- `findings[]`: structured items with `severity`, `evidence`, and `recommendation`
+* `decision`: `ALLOW | WARN | BLOCK`
+* `score`: `0–100` risk score
+* `findings[]`: structured items with `severity`, `evidence`, `recommendation`
 
 ### Limitations
 
-- Not a full static analyzer or formal audit
-- Diff-only inspection (no AST or runtime tracing)
-- Best used as a **pipeline guardrail**, not a replacement for audits
+* Not a full static analyzer or formal security audit.
+* Diff-text inspection only (no AST/runtime tracing).
+* Best used as a pipeline guardrail and triage signal.
 
 ---
 
 ## 🌐 HTTP Endpoints
 
-- `POST /mcp/basic` → basic tools (cheap, high-volume)
-- `POST /mcp/premium` → includes fix generation
+* `POST /mcp/basic` → `review_diff`, `pipeline_guard`
+* `POST /mcp/premium` → all basic tools + `generate_fix_patch`
 
 ---
 
 ## 💰 Pricing (x402)
 
-| Tier | Price |
-|----|----|
-| Basic scan | **0.002 USDC** |
-| Premium fix generation | **0.05 USDC** |
+| Tier                   | Price          |
+| ---------------------- | -------------- |
+| Basic scan             | **0.002 USDC** |
+| Premium fix generation | **0.05 USDC**  |
 
-**x402 flow:**
+### x402 flow
 
 1. Server returns `402 Payment Required`
 2. Client pays
-3. Request is retried with payment proof
+3. Client retries with payment proof
 
 No subscriptions. No accounts. Fully agent-native.
 
@@ -108,30 +90,31 @@ No subscriptions. No accounts. Fully agent-native.
 
 ## 🧠 Why Manual x402 (by design)
 
-This project intentionally uses **manual x402 responses** instead of heavy middleware:
+This project uses **manual x402 responses** instead of heavy middleware:
 
-- ✅ Deterministic
-- ✅ Stateless
-- ✅ CI/CD friendly
-- ✅ No SDK version traps
-- ✅ Easy for agents to reason about
+* ✅ Deterministic
+* ✅ Stateless
+* ✅ CI/CD friendly
+* ✅ No SDK version traps
+* ✅ Easy for agents to reason about
 
-> Manual x402 is ideal for CI/CD: no sessions, no keys, deterministic  
+> Manual x402 is ideal for CI/CD: no sessions, no keys, deterministic
 > **request → 402 → pay → retry**
 
-Agents **expect** to handle `402`. This is not a workaround — it’s a feature.
+**Important:** Current MVP checks only for presence of a proof header.
+It does **not** verify payment on-chain yet.
 
 ---
 
 ## 🔧 Setup
 
-### 1️⃣ Install
+### 1) Install
 
 ```bash
 npm install
-````
+```
 
-### 2️⃣ Configure environment
+### 2) Configure environment
 
 ```bash
 cp .env.example .env
@@ -140,55 +123,58 @@ cp .env.example .env
 Edit `.env`:
 
 ```env
-X402_PAY_TO=0xYOUR_WALLET_ADDRESS
+X402_PAY_TO=0x3dbc6b72a69898a5ba0f1ec7312abf3c6272c86e
 X402_NETWORK=eip155:8453
+PRICE_BASIC=0.002
+PRICE_PREMIUM=0.05
+PORT=3000
+HOST=0.0.0.0
 ```
 
 > Use `eip155:84532` for Base Sepolia testing.
+
+### 3) Build
+
+```bash
+npm run build
+```
 
 ---
 
 ## ▶️ Run
 
-### MCP (stdio)
+### HTTP server (prod)
 
 ```bash
-node index.js
+npm start
 ```
 
-### HTTP server
+### HTTP server (dev)
 
 ```bash
-node http-server.js
+npm run dev
 ```
 
-or
+### MCP server (stdio, prod)
 
 ```bash
-./launch.sh
+npm run start:mcp
 ```
 
----
-
-## 🧪 Testing
+### MCP server (stdio, dev)
 
 ```bash
-node test.js
+npm run dev:mcp
 ```
-
-Covers:
-
-* Free path
-* 402 response
-* Paid retry simulation
-* Tool correctness
 
 ---
 
 ## 🔌 Example: Basic Scan
 
+### Request (first call returns 402)
+
 ```bash
-curl -X POST http://localhost:3000/mcp/basic \
+curl -i -X POST http://localhost:3000/mcp/basic \
   -H "Content-Type: application/json" \
   -d '{
     "tool": "review_diff",
@@ -196,45 +182,30 @@ curl -X POST http://localhost:3000/mcp/basic \
   }'
 ```
 
-**Response (402):**
+### Typical 402 response
 
-```json
+```http
+HTTP/1.1 402 Payment Required
+Content-Type: application/json
+
 {
   "status": 402,
   "payment": {
     "amount": "0.002",
     "currency": "USDC",
     "network": "eip155:8453",
-    "payTo": "0x..."
+    "payTo": "0x3dbc6b72a69898a5ba0f1ec7312abf3c6272c86e",
+    "hint": "Pay then retry with x-402-payment-tx header containing your tx hash."
   }
 }
 ```
 
----
-
-## ✅ Example: Full x402 Round-Trip
-
-### Step 1 — Initial request (expected 402)
+### Retry with proof header
 
 ```bash
 curl -i -X POST http://localhost:3000/mcp/basic \
   -H "Content-Type: application/json" \
-  -d '{
-    "tool": "review_diff",
-    "diff": "+ eval(userInput)"
-  }'
-```
-
-### Step 2 — Pay
-
-Agent pays **0.002 USDC** to `payTo` on the specified network.
-
-### Step 3 — Retry with payment proof
-
-```bash
-curl -i -X POST http://localhost:3000/mcp/basic \
-  -H "Content-Type: application/json" \
-  -H "X402-PAYMENT-TX: 0xYOUR_TX_HASH_OR_PROOF" \
+  -H "x-402-payment-tx: 0xYOUR_TX_HASH" \
   -d '{
     "tool": "review_diff",
     "diff": "+ eval(userInput)"
@@ -248,7 +219,7 @@ curl -i -X POST http://localhost:3000/mcp/basic \
   "tool": "review_diff",
   "tier": "basic",
   "decision": "WARN",
-  "score": 72,
+  "score": 25,
   "findings": [
     {
       "id": "INJECTION.EVAL",
@@ -261,25 +232,16 @@ curl -i -X POST http://localhost:3000/mcp/basic \
 }
 ```
 
-> Header name may vary (`X402-PAYMENT-TX` or similar).
-> Requirement: **retry with valid payment proof**.
-
 ---
 
-## 🤖 MCP Integration
+## 🤖 MCP Integration (stdio)
 
-Agents can:
+Supports:
 
-* Use `tools/list`
-* Call tools directly
-* Handle `402` automatically
-* Retry after payment
+* `tools/list` for discovery
+* `tools/call` for execution
 
-Works with:
-
-* Custom agents
-* MCP-compatible frameworks
-* CI/CD bots
+Startup logs go to **stderr** so stdout remains clean JSON-RPC.
 
 ---
 
@@ -288,13 +250,14 @@ Works with:
 * `.env` is gitignored
 * Wallet address is public-safe
 * No private keys stored
-* No signing on server
+* No signing performed on server
+* MVP does not verify payment proof on-chain (header presence only)
 
 ---
 
 ## 📈 Use Cases
 
-* CI/CD pipeline guards
+* CI/CD pipeline gates
 * AI code review agents
 * Pre-merge security checks
 * Autonomous DevOps bots
@@ -305,5 +268,3 @@ Works with:
 ## 📜 License
 
 MIT — use freely, modify, deploy, monetize.
-
-```
