@@ -31,9 +31,14 @@ const PAYMENT_HEADER = "x-402-payment-tx";
 
 // ── Helpers ──────────────────────────────────────────────────
 
-function hasPaymentProof(req: Request): boolean {
+const PAYMENT_HEADER = "x-402-payment-tx";
+
+const VERIFY_ONCHAIN = (process.env.X402_VERIFY_ONCHAIN || "0") === "1";
+const MIN_CONFIRMATIONS = parseInt(process.env.X402_CONFIRMATIONS || "2", 10);
+
+function getTxHash(req: Request): string | null {
   const proof = req.headers[PAYMENT_HEADER] as string | undefined;
-  return !!proof && proof.length > 0;
+  return proof && proof.trim().length ? proof.trim() : null;
 }
 
 function send402(res: Response, amount: string): void {
@@ -45,8 +50,55 @@ function send402(res: Response, amount: string): void {
       network: NETWORK,
       payTo: PAY_TO,
       hint: `Pay then retry with ${PAYMENT_HEADER} header containing your tx hash.`,
+      verify: VERIFY_ONCHAIN ? "onchain" : "header-only",
+      confirmations: VERIFY_ONCHAIN ? MIN_CONFIRMATIONS : 0
     },
   });
+}
+
+// USDC has 6 decimals on Base
+function usdcUnits(amountStr: string): bigint {
+  // supports "0.002" "0.05" etc
+  const [whole, frac = ""] = amountStr.split(".");
+  const fracPadded = (frac + "000000").slice(0, 6);
+  return BigInt(whole || "0") * 1_000_000n + BigInt(fracPadded);
+}
+
+async function requirePayment(req: Request, res: Response, price: string): Promise<boolean> {
+  const tx = getTxHash(req);
+  if (!tx) {
+    send402(res, price);
+    return false;
+  }
+
+  if (!VERIFY_ONCHAIN) return true;
+
+  const required = usdcUnits(price);
+  const verdict = await verifyX402PaymentOnchain({
+    txHash: tx,
+    payTo: PAY_TO,
+    network: NETWORK,
+    requiredUnits: required,
+    minConfirmations: MIN_CONFIRMATIONS,
+  });
+
+  if (!verdict.ok) {
+    return res.status(402).json({
+      status: 402,
+      error: "Payment not verified on-chain",
+      reason: verdict.reason,
+      payment: {
+        amount: price,
+        currency: "USDC",
+        network: NETWORK,
+        payTo: PAY_TO,
+        hint: `Send a valid USDC transfer tx hash in ${PAYMENT_HEADER} and retry.`,
+        confirmations: MIN_CONFIRMATIONS
+      }
+    });
+  }
+
+  return true;
 }
 
 // ── Health check ─────────────────────────────────────────────
