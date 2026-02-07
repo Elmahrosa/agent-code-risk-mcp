@@ -1,117 +1,176 @@
-// src/http/x402Verify.ts
-import { createPublicClient, http, parseAbiItem, getAddress } from "viem";
-import { base } from "viem/chains";
+import { type Request, type Response, type NextFunction } from "express";
+import { config } from "../config";
 
-const TRANSFER_EVENT = parseAbiItem(
-  "event Transfer(address indexed from, address indexed to, uint256 value)"
-);
+const usedTxHashes = new Set<string>();
 
-function reqEnv(name: string): string {
-  const v = process.env[name];
-  if (!v) throw new Error(`Missing env: ${name}`);
-  return v;
+type PriceTier = "basic" | "premium";
+
+function tierForPath(path: string): PriceTier {
+  if (path.includes("scan-dependencies")) return "premium";
+  return "basic";
 }
 
-function getClientForNetwork(network: string) {
-  // Only implementing Base mainnet (8453) right now
-  if (network !== "eip155:8453") {
-    throw new Error(`Unsupported network for on-chain verify: ${network}`);
-  }
-  const rpc = reqEnv("RPC_URL_BASE");
-  return createPublicClient({ chain: base, transport: http(rpc) });
+function priceForTier(tier: PriceTier): string {
+  return tier === "premium" ? config.pricePremium : config.priceBasic;
 }
 
-function getUsdcForNetwork(network: string): `0x${string}` {
-  if (network === "eip155:8453") return getAddress(reqEnv("USDC_ADDRESS_8453"));
-  throw new Error(`Unsupported network for USDC address: ${network}`);
+function send402(res: Response, tier: PriceTier): void {
+  const price = priceForTier(tier);
+  res.status(402).json({
+    error: "Payment Required",
+    "x402-version": 1,
+    accepts: [
+      {
+        scheme: "exact",
+        network: config.networkId,
+        maxAmountRequired: price,
+        resource: `usdc:${config.usdcAddress}`,
+        payTo: config.payTo,
+        maxTimeoutSeconds: 60,
+        extra: { name: "USDC", decimals: 6 },
+      },
+    ],
+    description: `Pay $${price} USDC on ${config.network.name} to access this endpoint (${tier} tier).`,
+  });
 }
 
-/**
- * Verifies that txHash contains a USDC Transfer(to=PAY_TO, value>=requiredUnits)
- * and has at least N confirmations and succeeded.
- */
-export async function verifyX402PaymentOnchain(opts: {
-  txHash: string;
-  payTo: string;
-  network: string;
-  requiredUnits: bigint; // USDC has 6 decimals (0.002 => 2000n)
-  minConfirmations: number;
-}): Promise<{ ok: true; paidUnits: bigint; from?: string } | { ok: false; reason: string }> {
+async function rpcFetch(body: any, timeoutMs = 10000) {
+  const ac = new AbortController();
+  const t = setTimeout(() => ac.abort(), timeoutMs);
   try {
-    const { txHash, payTo, network, requiredUnits, minConfirmations } = opts;
+    const res = await fetch(config.rpcUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+      signal: ac.signal,
+    });
+    return res;
+  } finally {
+    clearTimeout(t);
+  }
+}
 
-    if (!/^0x([A-Fa-f0-9]{64})$/.test(txHash)) {
-      return { ok: false, reason: "Invalid tx hash format" };
-    }
+async function verifyOnChain(txHash: string, requiredAmount: number): Promise<boolean> {
+  const receiptRes = await rpcFetch({
+    jsonrpc: "2.0",
+    id: 1,
+    method: "eth_getTransactionReceipt",
+    params: [txHash],
+  });
 
-    const client = getClientForNetwork(network);
-    const usdc = getUsdcForNetwork(network);
-    const payToChecksum = getAddress(payTo);
+  const receiptJson = (await receiptRes.json()) as {
+    result: {
+      status: string;
+      blockNumber: string;
+      logs: Array<{ address: string; topics: string[]; data: string }>;
+    } | null;
+  };
 
-    const receipt = await client.getTransactionReceipt({ hash: txHash as `0x${string}` });
+  const receipt = receiptJson.result;
+  if (!receipt) return false;
+  if (receipt.status !== "0x1") return false;
 
-    if (!receipt) return { ok: false, reason: "Transaction receipt not found" };
-    if (receipt.status !== "success") return { ok: false, reason: "Transaction failed/reverted" };
+  const blockNumRes = await rpcFetch({
+    jsonrpc: "2.0",
+    id: 2,
+    method: "eth_blockNumber",
+    params: [],
+  });
 
-    // confirmations
-    const latest = await client.getBlockNumber();
-    const conf = latest - receipt.blockNumber + 1n;
-    if (Number(conf) < minConfirmations) {
-      return { ok: false, reason: `Not enough confirmations: have ${conf.toString()}, need ${minConfirmations}` };
-    }
+  const blockNumJson = (await blockNumRes.json()) as { result: string };
+  const currentBlock = parseInt(blockNumJson.result, 16);
+  const txBlock = parseInt(receipt.blockNumber, 16);
 
-    // parse USDC Transfer logs
-    const transfers = receipt.logs
-      .filter((l) => getAddress(l.address) === usdc)
-      .map((l) => {
+  if (currentBlock - txBlock < config.confirmations) return false;
+
+  const TRANSFER_TOPIC =
+    "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef";
+
+  const payToNormalized = config.payTo.toLowerCase();
+  const usdcNormalized = config.usdcAddress.toLowerCase();
+
+  const transferLog = receipt.logs.find((log) => {
+    if (log.address.toLowerCase() !== usdcNormalized) return false;
+    if (log.topics[0] !== TRANSFER_TOPIC) return false;
+    const toAddress = "0x" + (log.topics[2] || "").slice(26).toLowerCase();
+    return toAddress === payToNormalized;
+  });
+
+  if (!transferLog) return false;
+
+  const rawAmount = BigInt(transferLog.data);
+  const amountFloat = Number(rawAmount) / 10 ** 6;
+
+  if (!Number.isFinite(requiredAmount) || requiredAmount <= 0) return false;
+  if (amountFloat + 1e-9 < requiredAmount) return false;
+
+  return true;
+}
+
+function verifyHeaderOnly(header: string): boolean {
+  return /^0x[a-fA-F0-9]{64}$/.test(header);
+}
+
+export async function x402PaymentGate(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> {
+  const paymentHeader = req.headers["x-payment"] as string | undefined;
+  const tier = tierForPath(req.path);
+
+  if (!paymentHeader) {
+    send402(res, tier);
+    return;
+  }
+
+  try {
+    let verified = false;
+
+    if (config.verifyOnChain) {
+      let txHash = paymentHeader;
+
+      if (paymentHeader.startsWith("{")) {
         try {
-          return {
-            ...l,
-            decoded: client.chain?.id
-              ? (null as any)
-              : null,
-          };
+          const parsed = JSON.parse(paymentHeader);
+          txHash = parsed.txHash || parsed.transaction || parsed.hash || "";
         } catch {
-          return null;
+          res.status(402).json({ error: "Malformed payment header JSON" });
+          return;
         }
-      });
-
-    // decode safely using viem helper
-    // (do it in a loop to avoid a single bad log breaking everything)
-    let paid = 0n;
-    let payer: string | undefined;
-
-    for (const log of receipt.logs) {
-      if (getAddress(log.address) !== usdc) continue;
-
-      try {
-        const decoded = (await import("viem")).decodeEventLog({
-          abi: [TRANSFER_EVENT],
-          data: log.data,
-          topics: log.topics,
-        });
-
-        if (decoded.eventName !== "Transfer") continue;
-
-        const from = getAddress(decoded.args.from as string);
-        const to = getAddress(decoded.args.to as string);
-        const value = BigInt(decoded.args.value as any);
-
-        if (to === payToChecksum) {
-          paid += value;
-          if (!payer) payer = from;
-        }
-      } catch {
-        // ignore non-matching logs
       }
+
+      if (!/^0x[a-fA-F0-9]{64}$/.test(txHash)) {
+        res.status(402).json({ error: "Invalid transaction hash format." });
+        return;
+      }
+
+      const txHashLower = txHash.toLowerCase();
+
+      if (usedTxHashes.has(txHashLower)) {
+        res.status(402).json({
+          error: "Payment Required",
+          reason: "Transaction already used. Each payment can only be used once.",
+        });
+        return;
+      }
+
+      const requiredAmount = Number(priceForTier(tier));
+      verified = await verifyOnChain(txHash, requiredAmount);
+      if (verified) usedTxHashes.add(txHashLower);
+    } else {
+      verified = verifyHeaderOnly(paymentHeader);
     }
 
-    if (paid < requiredUnits) {
-      return { ok: false, reason: `Insufficient USDC paid: got ${paid.toString()} units, need ${requiredUnits.toString()} units` };
+    if (!verified) {
+      res.status(402).json({ error: "Payment verification failed" });
+      return;
     }
 
-    return { ok: true, paidUnits: paid, from: payer };
-  } catch (e: any) {
-    return { ok: false, reason: e?.message || "Verification error" };
+    (req as any).x402 = { tier, verified: true };
+    next();
+  } catch (err) {
+    console.error("[x402] Verification error:", err);
+    res.status(500).json({ error: "Payment verification internal error" });
   }
 }
