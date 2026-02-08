@@ -5,7 +5,7 @@
   "main": "dist/http/app.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/http/app.js",
+    "start": "node server/index.js",
     "start:mcp": "node dist/mcp/server.js",
     "dev": "ts-node src/http/app.ts",
     "dev:mcp": "ts-node src/mcp/server.ts",

@@ -1,15 +1,8 @@
-const express = require('express');
+import express from "express";
+
 const app = express();
+app.get("/", (req, res) => res.status(200).send("OK"));
+app.get("/health", (req, res) => res.status(200).json({ ok: true }));
 
-app.get('/', (req, res) => {
-  res.send('✅ Agent Code Risk MCP is live on app.teosegypt.com');
-});
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', service: 'agent-code-risk-mcp' });
-});
-
-const PORT = process.env.PORT || 8000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const port = Number(process.env.PORT || 8000);
+app.listen(port, "0.0.0.0", () => console.log("HTTP on", port));
