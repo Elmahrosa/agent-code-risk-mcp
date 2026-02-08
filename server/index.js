@@ -1,83 +1,99 @@
 cat <<'EOF' > server/index.js
-import express from "express";
+const express = require("express");
+
+async function loadEngine() {
+  const candidates = [
+    "./dist/review.js",
+    "./dist/review/index.js",
+    "./dist/index.js",
+    "./dist/server.js",
+    "./dist/api.js",
+  ];
+
+  for (const p of candidates) {
+    try {
+      const mod = require(`../${p}`);
+      const fn =
+        mod?.default ||
+        mod?.review ||
+        mod?.analyze ||
+        mod?.query ||
+        mod?.handleQuery;
+
+      if (typeof fn === "function") return { path: p, fn };
+    } catch (_) {}
+  }
+  return null;
+}
 
 const app = express();
-app.use(express.json({ limit: "1mb" }));
+app.use(express.json({ limit: "2mb" }));
 
-// --- Health ---
 app.get("/health", (req, res) => res.status(200).json({ ok: true }));
 
-// --- Docs UI ---
-app.get("/", (req, res) => {
-  res
-    .status(200)
-    .type("html")
-    .send(`<!doctype html>
-<html>
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Agent Code Risk MCP</title>
-  <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;max-width:920px;margin:40px auto;padding:0 16px;line-height:1.5}
-    code,pre{background:#f5f5f5;padding:2px 6px;border-radius:6px}
-    pre{padding:12px;overflow:auto}
-    .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:14px 0}
-    a{color:#0b57d0;text-decoration:none}
-    a:hover{text-decoration:underline}
-  </style>
-</head>
-<body>
-  <h1>Agent Code Risk MCP</h1>
-  <p>Status: <b>Online ✅</b></p>
-
-  <div class="card">
-    <h2>Endpoints</h2>
-    <ul>
-      <li><a href="/health">GET /health</a> → service health</li>
-      <li><a href="/docs">GET /docs</a> → API & usage</li>
-    </ul>
-    <p>If you already have API routes (e.g. <code>/api/...</code>) in your app, they remain available.</p>
-  </div>
-
-  <div class="card">
-    <h2>Quick test</h2>
-    <pre>curl -s https://app.teosegypt.com/health</pre>
-  </div>
-
-  <p style="opacity:.7">Elmahrosa / TEOS Labs</p>
-</body>
-</html>`);
+app.get("/api/v1/status", async (req, res) => {
+  const engine = await loadEngine();
+  res.status(200).json({
+    ok: true,
+    service: "agent-code-risk-mcp",
+    engine: engine ? { loaded: true, from: engine.path } : { loaded: false },
+  });
 });
 
-app.get("/docs", (req, res) => {
+app.get("/", async (req, res) => {
+  const engine = await loadEngine();
   res.status(200).type("html").send(`<!doctype html>
 <html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Docs | Agent Code Risk MCP</title>
+<title>Agent Code Risk MCP</title>
 <style>
-body{font-family:system-ui;max-width:920px;margin:40px auto;padding:0 16px;line-height:1.5}
+body{font-family:system-ui;max-width:980px;margin:40px auto;padding:0 16px;line-height:1.5}
 code,pre{background:#f5f5f5;padding:2px 6px;border-radius:6px}
-pre{padding:12px;overflow:auto}
+pre{padding:12px;overflow:auto}.card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:14px 0}
+.muted{opacity:.75} a{color:#0b57d0;text-decoration:none} a:hover{text-decoration:underline}
 </style></head>
 <body>
-<h1>API Docs</h1>
-<p>Health:</p>
-<pre>GET /health</pre>
-
-<p>If your repo exposes HTTP APIs (example):</p>
-<pre>POST /api/v1/query
-Content-Type: application/json
-
-{"contract_address":"0x123","chain_id":"1"}</pre>
-
-<p>If you want me to wire real endpoints here (not just docs), tell me the exact routes you want live.</p>
+<h1>Agent Code Risk MCP</h1>
+<p>Status: <b>Online ✅</b></p>
+<div class="card">
+<h2>API</h2>
+<ul>
+<li><a href="/health">GET /health</a></li>
+<li><a href="/api/v1/status">GET /api/v1/status</a></li>
+<li><code>POST /api/v1/query</code> (JSON)</li>
+</ul>
+<p class="muted">Engine: ${engine ? `loaded from <code>${engine.path}</code>` : `not auto-detected yet (returns 501 until wired)`}</p>
+</div>
+<div class="card">
+<h2>Example</h2>
+<pre>curl -s https://app.teosegypt.com/api/v1/status</pre>
+<pre>curl -s -X POST https://app.teosegypt.com/api/v1/query \\
+  -H "Content-Type: application/json" \\
+  -d '{"input":"..."}'</pre>
+</div>
+<p class="muted">Elmahrosa / TEOS Labs</p>
 </body></html>`);
+});
+
+app.post("/api/v1/query", async (req, res) => {
+  const engine = await loadEngine();
+  if (!engine) {
+    return res.status(501).json({
+      ok: false,
+      error: "EngineNotWired",
+      message:
+        "Express wrapper is live, but engine export not auto-detected in dist/. " +
+        "Share src/http or src/core entrypoint and I will wire it precisely.",
+    });
+  }
+
+  try {
+    const result = await engine.fn(req.body);
+    return res.status(200).json({ ok: true, engine: engine.path, result });
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: "EngineError", message: e?.message || String(e) });
+  }
 });
 
 const port = Number(process.env.PORT || 8000);
 app.listen(port, "0.0.0.0", () => console.log("HTTP on", port));
 EOF
-
-git add server/index.js
-git commit -m "Replace OK with landing UI + /docs (keep /health)"
-git push origin main
