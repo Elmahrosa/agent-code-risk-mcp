@@ -1,4 +1,4 @@
-const express = require('express');
+﻿const express = require('express');
 const app = express();
 
 app.get('/', (req, res) => {
@@ -9,7 +9,7 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'agent-code-risk-mcp' });
 });
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(Server running on port );
 });
