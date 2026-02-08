@@ -1,3 +1,4 @@
+// src/config.ts
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -33,27 +34,45 @@ function optEnv(key: string, fallback: string): string {
 function resolveNetwork(): NetworkId {
   const raw = optEnv("X402_NETWORK", "eip155:8453");
   if (!(raw in NETWORKS)) {
-    throw new Error(`Unsupported X402_NETWORK="${raw}". Supported: ${Object.keys(NETWORKS).join(", ")}`);
+    throw new Error(
+      `Unsupported X402_NETWORK="${raw}". Supported: ${Object.keys(NETWORKS).join(", ")}`
+    );
   }
   return raw as NetworkId;
 }
 
+function asBool01(v: string): boolean {
+  return (v || "").trim() === "1";
+}
+
 export const config = {
-  port: parseInt(optEnv("PORT", "3000"), 10),
+  // ── Server ────────────────────────────────────────
+  port: parseInt(optEnv("PORT", "8000"), 10),
   host: optEnv("HOST", "0.0.0.0"),
 
+  // ── Mode / Billing control ────────────────────────
+  teosMode: optEnv("TEOS_MODE", "live").toLowerCase(), // "test" | "live"
+  requirePayment: optEnv("TEOS_REQUIRE_PAYMENT", "1") !== "0", // 0 disables paywall
+
+  // ── Network ───────────────────────────────────────
   networkId: resolveNetwork(),
   get network() {
     return NETWORKS[this.networkId];
   },
 
+  // ── Payment ───────────────────────────────────────
   payTo: reqEnv("X402_PAY_TO"),
-  priceBasic: optEnv("PRICE_BASIC", "0.002"),
-  pricePremium: optEnv("PRICE_PREMIUM", "0.05"),
 
-  verifyOnChain: optEnv("X402_VERIFY_ONCHAIN", "0") === "1",
+  // Pricing (USDC)
+  priceBasic: optEnv("PRICE_BASIC", "0.25"),
+  pricePremium: optEnv("PRICE_PREMIUM", "0.50"),
+  pricePipeline: optEnv("PRICE_PIPELINE", "1.00"),
+
+  // Verification behavior
+  verifyOnChain: asBool01(optEnv("X402_VERIFY_ONCHAIN", "0")),
   confirmations: parseInt(optEnv("X402_CONFIRMATIONS", "2"), 10),
 
+  // RPC / contracts
   get rpcUrl(): string {
     return optEnv("RPC_URL_BASE", NETWORKS[this.networkId].rpcUrl);
   },
@@ -67,13 +86,16 @@ export function printConfig(): void {
   console.log("┌─────────────────────────────────────────────┐");
   console.log("│  Agent Code Risk MCP — Config               │");
   console.log("├─────────────────────────────────────────────┤");
+  console.log(`│  Mode         : ${config.teosMode}`);
+  console.log(`│  RequirePay   : ${config.requirePayment ? "ON" : "OFF (test bypass)"}`);
   console.log(`│  Network      : ${config.network.name} (${config.networkId})`);
   console.log(`│  Chain ID     : ${config.network.chainId}`);
   console.log(`│  Pay-to       : ${config.payTo}`);
   console.log(`│  USDC         : ${config.usdcAddress}`);
   console.log(`│  Price basic  : $${config.priceBasic} USDC`);
   console.log(`│  Price premium: $${config.pricePremium} USDC`);
-  console.log(`│  Verify chain : ${config.verifyOnChain ? "ON" : "OFF (dev mode)"}`);
+  console.log(`│  Price pipe   : $${config.pricePipeline} USDC`);
+  console.log(`│  Verify chain : ${config.verifyOnChain ? "ON" : "OFF (header-only)"}`);
   console.log(`│  Confirmations: ${config.confirmations}`);
   console.log(`│  RPC          : ${config.rpcUrl}`);
   console.log("└─────────────────────────────────────────────┘");
