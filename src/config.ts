@@ -19,6 +19,7 @@ export const NETWORKS = {
 } as const;
 
 export type NetworkId = keyof typeof NETWORKS;
+export type TeosMode = "test" | "live";
 
 function reqEnv(key: string): string {
   const val = process.env[key];
@@ -41,43 +42,48 @@ function resolveNetwork(): NetworkId {
   return raw as NetworkId;
 }
 
-function asBool01(v: string): boolean {
-  return (v || "").trim() === "1";
+function resolveMode(): TeosMode {
+  const raw = optEnv("TEOS_MODE", "live").toLowerCase();
+  return raw === "test" ? "test" : "live";
+}
+
+function resolveBool01(key: string, fallback01: "0" | "1"): boolean {
+  const raw = optEnv(key, fallback01).trim();
+  return raw === "1" || raw.toLowerCase() === "true" || raw.toLowerCase() === "yes";
 }
 
 export const config = {
-  // ── Server ────────────────────────────────────────
+  // Server
   port: parseInt(optEnv("PORT", "8000"), 10),
   host: optEnv("HOST", "0.0.0.0"),
 
-  // ── Mode / Billing control ────────────────────────
-  teosMode: optEnv("TEOS_MODE", "live").toLowerCase(), // "test" | "live"
-  requirePayment: optEnv("TEOS_REQUIRE_PAYMENT", "1") !== "0", // 0 disables paywall
+  // Mode / gating
+  teosMode: resolveMode(), // "test" | "live"
+  requirePayment: resolveBool01("TEOS_REQUIRE_PAYMENT", "1"),
 
-  // ── Network ───────────────────────────────────────
+  // Network
   networkId: resolveNetwork(),
   get network() {
     return NETWORKS[this.networkId];
   },
 
-  // ── Payment ───────────────────────────────────────
+  // Payment settings
   payTo: reqEnv("X402_PAY_TO"),
+  verifyOnChain: resolveBool01("X402_VERIFY_ONCHAIN", "0"),
+  confirmations: parseInt(optEnv("X402_CONFIRMATIONS", "2"), 10),
 
-  // Pricing (USDC)
+  // Pricing
   priceBasic: optEnv("PRICE_BASIC", "0.25"),
   pricePremium: optEnv("PRICE_PREMIUM", "0.50"),
   pricePipeline: optEnv("PRICE_PIPELINE", "1.00"),
 
-  // Verification behavior
-  verifyOnChain: asBool01(optEnv("X402_VERIFY_ONCHAIN", "0")),
-  confirmations: parseInt(optEnv("X402_CONFIRMATIONS", "2"), 10),
-
-  // RPC / contracts
+  // RPC / USDC overrides
   get rpcUrl(): string {
     return optEnv("RPC_URL_BASE", NETWORKS[this.networkId].rpcUrl);
   },
 
   get usdcAddress(): string {
+    // allow override via USDC_ADDRESS; else network default
     return optEnv("USDC_ADDRESS", NETWORKS[this.networkId].usdcAddress);
   },
 } as const;
@@ -87,7 +93,7 @@ export function printConfig(): void {
   console.log("│  Agent Code Risk MCP — Config               │");
   console.log("├─────────────────────────────────────────────┤");
   console.log(`│  Mode         : ${config.teosMode}`);
-  console.log(`│  RequirePay   : ${config.requirePayment ? "ON" : "OFF (test bypass)"}`);
+  console.log(`│  Require Pay  : ${config.requirePayment ? "ON" : "OFF"}`);
   console.log(`│  Network      : ${config.network.name} (${config.networkId})`);
   console.log(`│  Chain ID     : ${config.network.chainId}`);
   console.log(`│  Pay-to       : ${config.payTo}`);
@@ -95,7 +101,7 @@ export function printConfig(): void {
   console.log(`│  Price basic  : $${config.priceBasic} USDC`);
   console.log(`│  Price premium: $${config.pricePremium} USDC`);
   console.log(`│  Price pipe   : $${config.pricePipeline} USDC`);
-  console.log(`│  Verify chain : ${config.verifyOnChain ? "ON" : "OFF (header-only)"}`);
+  console.log(`│  Verify chain : ${config.verifyOnChain ? "ON" : "OFF (dev/test)"}`);
   console.log(`│  Confirmations: ${config.confirmations}`);
   console.log(`│  RPC          : ${config.rpcUrl}`);
   console.log("└─────────────────────────────────────────────┘");
