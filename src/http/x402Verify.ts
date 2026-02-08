@@ -1,17 +1,26 @@
+// src/http/x402Verify.ts
 import { type Request, type Response, type NextFunction } from "express";
 import { config } from "../config";
 
 const usedTxHashes = new Set<string>();
 
-type PriceTier = "basic" | "premium";
+export type PriceTier = "basic" | "premium" | "pipeline";
 
-function tierForPath(path: string): PriceTier {
-  if (path.includes("scan-dependencies")) return "premium";
+function tierForRequest(req: Request): PriceTier {
+  // scan-dependencies always premium
+  if (req.path.includes("scan-dependencies")) return "premium";
+
+  // analyze: choose tier by body.mode
+  const mode = String((req.body as any)?.mode || "basic").toLowerCase();
+  if (mode === "premium") return "premium";
+  if (mode === "pipeline") return "pipeline";
   return "basic";
 }
 
 function priceForTier(tier: PriceTier): string {
-  return tier === "premium" ? config.pricePremium : config.priceBasic;
+  if (tier === "premium") return config.pricePremium;
+  if (tier === "pipeline") return config.pricePipeline;
+  return config.priceBasic;
 }
 
 function send402(res: Response, tier: PriceTier): void {
@@ -108,6 +117,7 @@ async function verifyOnChain(txHash: string, requiredAmount: number): Promise<bo
 }
 
 function verifyHeaderOnly(header: string): boolean {
+  // header-only verification (dev only): must look like tx hash
   return /^0x[a-fA-F0-9]{64}$/.test(header);
 }
 
@@ -116,8 +126,15 @@ export async function x402PaymentGate(
   res: Response,
   next: NextFunction
 ): Promise<void> {
+  // ✅ HARD BYPASS: test mode or payment disabled
+  if (config.teosMode === "test" || config.requirePayment === false) {
+    (req as any).x402 = { tier: tierForRequest(req), verified: false, bypass: true };
+    next();
+    return;
+  }
+
   const paymentHeader = req.headers["x-payment"] as string | undefined;
-  const tier = tierForPath(req.path);
+  const tier = tierForRequest(req);
 
   if (!paymentHeader) {
     send402(res, tier);
