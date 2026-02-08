@@ -2,7 +2,7 @@
 
 # Agent Code Risk MCP #TeosMcp
 
-![TeosMcp](https://img.shields.io/badge/TeosMcp-blue?style=for-the-badge&logo=appveyor)
+![TeosMcp](https://img.shields.io/badge/TeosMcp-Elmahrosa%20Blockchain-gold?style=plastic&logo=appveyor)
 
 [![TEOS](https://img.shields.io/badge/TEOS-Governance%20by%20Design-blue?style=flat-square)](https://github.com/Elmahrosa)
 [![Elmahrosa](https://img.shields.io/badge/Elmahrosa-Blockchain%20Ecosystem-gold?style=flat-square)](https://github.com/Elmahrosa)
