@@ -8,6 +8,8 @@ import { x402PaymentGate } from "./x402Verify";
 import { analyzeCode } from "../tools/analyzeCode";
 import { scanDependencies } from "../tools/scanDependencies";
 
+const BUILD_FINGERPRINT = "2026-02-08T15:00Z-pricing-v1";
+
 const app = express();
 app.use(express.json({ limit: "1mb" }));
 
@@ -32,7 +34,7 @@ app.get("/", (_req: Request, res: Response) => {
         <ul>
           <li>GET <code>/health</code></li>
           <li>GET <code>/pricing</code></li>
-          <li>POST <code>/analyze</code>  (body.mode: basic|premium|pipeline)</li>
+          <li>POST <code>/analyze</code> (body.mode: basic|premium|pipeline)</li>
           <li>POST <code>/scan-dependencies</code></li>
         </ul>
       </body>
@@ -47,26 +49,28 @@ app.get("/health", (_req: Request, res: Response) => {
   res.json({
     status: "ok",
     version: "1.0.0",
+    build: BUILD_FINGERPRINT,
     network: config.networkId,
     verifyOnChain: config.verifyOnChain,
-    mode: config.teosMode,
-    requirePayment: config.requirePayment,
+    mode: (config as any).teosMode, // requires config.ts additions
+    requirePayment: (config as any).requirePayment, // requires config.ts additions
     prices: {
       basic: Number(config.priceBasic),
       premium: Number(config.pricePremium),
-      pipeline: Number(config.pricePipeline),
+      pipeline: Number((config as any).pricePipeline), // requires config.ts additions
     },
     timestamp: new Date().toISOString(),
   });
 });
 
 // ─────────────────────────────────────────────
-// Pricing endpoint (so users can see pricing)
+// Pricing endpoint
 // ─────────────────────────────────────────────
 app.get("/pricing", (_req: Request, res: Response) => {
   res.json({
-    mode: config.teosMode,
-    requirePayment: config.requirePayment,
+    build: BUILD_FINGERPRINT,
+    mode: (config as any).teosMode, // requires config.ts additions
+    requirePayment: (config as any).requirePayment, // requires config.ts additions
     network: {
       id: config.networkId,
       name: config.network.name,
@@ -83,7 +87,7 @@ app.get("/pricing", (_req: Request, res: Response) => {
     prices: {
       basic: Number(config.priceBasic),
       premium: Number(config.pricePremium),
-      pipeline: Number(config.pricePipeline),
+      pipeline: Number((config as any).pricePipeline), // requires config.ts additions
     },
   });
 });
@@ -97,32 +101,31 @@ app.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { code, language, context, mode } = req.body;
+
       if (!code || typeof code !== "string") {
         res.status(400).json({ error: "Missing `code` string in request body" });
         return;
       }
 
-      const tier =
-        String(mode || "basic").toLowerCase() === "premium"
-          ? "premium"
-          : String(mode || "basic").toLowerCase() === "pipeline"
-          ? "pipeline"
-          : "basic";
+      const m = String(mode || "basic").toLowerCase();
+      const tier = m === "premium" ? "premium" : m === "pipeline" ? "pipeline" : "basic";
 
       const price_preview =
         tier === "premium"
           ? Number(config.pricePremium)
           : tier === "pipeline"
-          ? Number(config.pricePipeline)
+          ? Number((config as any).pricePipeline)
           : Number(config.priceBasic);
 
       const result = await analyzeCode(code, language, context);
 
-      // ✅ Always include tier + pricing preview (useful in test mode and even live mode)
+      const teosMode = (config as any).teosMode;
+      const requirePayment = (config as any).requirePayment;
+
       res.json({
         tier,
         price_preview,
-        payment_required: config.requirePayment && config.teosMode !== "test",
+        payment_required: Boolean(requirePayment) && teosMode !== "test",
         result,
       });
     } catch (err) {
@@ -140,6 +143,7 @@ app.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { manifest, lockfile } = req.body;
+
       if (!manifest || typeof manifest !== "string") {
         res.status(400).json({ error: "Missing `manifest` string in request body" });
         return;
@@ -150,10 +154,13 @@ app.post(
 
       const result = await scanDependencies(manifest, lockfile);
 
+      const teosMode = (config as any).teosMode;
+      const requirePayment = (config as any).requirePayment;
+
       res.json({
         tier,
         price_preview,
-        payment_required: config.requirePayment && config.teosMode !== "test",
+        payment_required: Boolean(requirePayment) && teosMode !== "test",
         result,
       });
     } catch (err) {
