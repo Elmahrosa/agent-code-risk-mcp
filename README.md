@@ -1,8 +1,27 @@
-# Agent Code Risk MCP
+
+## Agent Code Risk MCP
+
+Prevent AI agents from shipping insecure, unsafe, or non-compliant code.
+
+• Built for CI/CD and autonomous agents  
+• Detects risky diffs before merge  
+• x402 pay-per-scan (no subscriptions)  
+• Base Network on-chain verification  
+
+Live API: https://app.teosegypt.com
 
 **Agent Code Risk MCP** is a lightweight **MCP-compatible server** that helps AI agents and CI/CD pipelines detect risky code changes **before merge or deployment**.
 
-Designed for **AI agent builders**, **DevOps pipelines**, and **automated reviewers** who need **fast, deterministic risk signals** with **pay-per-request (x402)** pricing.
+Designed for 
+**AI agent builders**
+**DevOps pipelines**
+**automated reviewers** 
+
+who need 
+**fast, 
+deterministic risk signals**
+ with 
+**pay-per-request (x402)** pricing.
 
 ---
 
