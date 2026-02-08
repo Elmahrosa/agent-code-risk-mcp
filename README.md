@@ -54,105 +54,90 @@ It detects risky patterns **before merge or deployment** using deterministic heu
 ```bash
 curl https://app.teosegypt.com/health
 curl https://app.teosegypt.com/pricing
+````
 
-2) Test a Scan
+### 2) Test a Scan
 
+```bash
 curl -s -X POST https://app.teosegypt.com/analyze \
   -H "Content-Type: application/json" \
   -d '{"code":"const x = eval(userInput);","mode":"basic"}'
+```
 
-> mode can be: basic | premium | pipeline
+> `mode` can be: `basic` | `premium` | `pipeline`
 
+### 3) Dependency Scan
 
-
-3) Dependency Scan
-
+```bash
 curl -s -X POST https://app.teosegypt.com/scan-dependencies \
   -H "Content-Type: application/json" \
   -d '{"manifest":"{\"dependencies\":{\"lodash\":\"4.17.0\"}}","lockfile":""}'
-
+```
 
 ---
 
-💰 Pricing (Live)
+## 💰 Pricing (Live)
 
 Pricing is discoverable in real-time from:
 
-GET https://app.teosegypt.com/pricing
+* `GET https://app.teosegypt.com/pricing`
 
+### Tiers
 
-Tiers
-
-Tier	When to use	Endpoint(s)
-
-Basic	agent decisions, quick code checks	/analyze (mode=basic)
-Premium	deeper analysis / higher assurance	/analyze (mode=premium), /scan-dependencies
-Pipeline	CI/CD gate runs	/analyze (mode=pipeline)
-
-
+| Tier         | When to use                        | Endpoint(s)                                       |
+| ------------ | ---------------------------------- | ------------------------------------------------- |
+| **Basic**    | agent decisions, quick code checks | `/analyze` (`mode=basic`)                         |
+| **Premium**  | deeper analysis / higher assurance | `/analyze` (`mode=premium`), `/scan-dependencies` |
+| **Pipeline** | CI/CD gate runs                    | `/analyze` (`mode=pipeline`)                      |
 
 ---
 
-🧪 Test Mode vs Live Mode
+## 🧪 Test Mode vs Live Mode
 
-The API can run in test mode (no payment required) to validate integrations before launch.
+The API can run in **test mode** (no payment required) to validate integrations before launch.
 
 Check current mode here:
 
+```bash
 curl https://app.teosegypt.com/health
+```
 
 It returns:
 
-mode
-
-requirePayment
-
-verifyOnChain
-
-tier prices
-
-
+* `mode`
+* `requirePayment`
+* `verifyOnChain`
+* tier prices
 
 ---
 
-🛡️ What We Detect
+## 🛡️ What We Detect
 
-🔴 Critical
+### 🔴 Critical
 
-Dynamic execution (eval, new Function, shell execution)
+* Dynamic execution (`eval`, `new Function`, shell execution)
+* Hardcoded secrets / private keys
+* SQL / command injection patterns
+* Unsafe deserialization (`pickle.loads`, `yaml.load`, `unserialize`)
 
-Hardcoded secrets / private keys
+### 🟠 High
 
-SQL / command injection patterns
+* XSS primitives (`innerHTML`, `document.write`)
+* Prototype pollution vectors
+* SSRF / unvalidated outbound URLs
+* Auth bypass patterns
 
-Unsafe deserialization (pickle.loads, yaml.load, unserialize)
+### 🟡 Medium / 🔵 Low
 
-
-🟠 High
-
-XSS primitives (innerHTML, document.write)
-
-Prototype pollution vectors
-
-SSRF / unvalidated outbound URLs
-
-Auth bypass patterns
-
-
-🟡 Medium / 🔵 Low
-
-Weak crypto usage (MD5/SHA1/Math.random)
-
-Risky config patterns
-
-Debug leftovers, TODOs, linter suppressions
-
-
+* Weak crypto usage (MD5/SHA1/Math.random)
+* Risky config patterns
+* Debug leftovers, TODOs, linter suppressions
 
 ---
 
-📦 Repository Structure
+## 📦 Repository Structure
 
+```text
 agent-code-risk-mcp/
 ├── src/
 │   ├── core/
@@ -171,30 +156,36 @@ agent-code-risk-mcp/
 ├── LICENSE
 ├── package.json
 └── tsconfig.json
-
+```
 
 ---
 
-🔧 Installation & Setup
+## 🔧 Installation & Setup
 
-1) Install
+### 1) Install
 
+```bash
 npm install
+```
 
-2) Configure
+### 2) Configure
 
+```bash
 cp .env.example .env
+```
 
-3) Run
+### 3) Run
 
+```bash
 npm run build
 npm start
-
+```
 
 ---
 
-⚙️ Environment Variables (Core)
+## ⚙️ Environment Variables (Core)
 
+```env
 # Payment routing
 X402_PAY_TO=0x6CB857A62f6a55239D67C6bD1A8ed5671605566D
 X402_NETWORK=eip155:8453
@@ -216,36 +207,35 @@ REQUIRE_PAYMENT=0
 # Server
 PORT=3000
 HOST=0.0.0.0
+```
 
-> Switch to live mode by setting TEOS_MODE=live and REQUIRE_PAYMENT=1, and (optionally) X402_VERIFY_ONCHAIN=1.
-
-
-
+> Switch to live mode by setting `TEOS_MODE=live` and `REQUIRE_PAYMENT=1`, and (optionally) `X402_VERIFY_ONCHAIN=1`.
 
 ---
 
-🧯 Rate Limiting (New)
+## 🧯 Rate Limiting (New)
 
-The API enforces tiered rate limits and returns JSON on throttling:
+The API enforces **tiered rate limits** and returns JSON on throttling:
 
-429 { "error": "Too Many Requests" }
-
+* `429 { "error": "Too Many Requests" }`
 
 You can tune limits:
 
+```env
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_PUBLIC=600
 RATE_LIMIT_MAX_BASIC=120
 RATE_LIMIT_MAX_PREMIUM=60
 RATE_LIMIT_MAX_PIPELINE=30
-
+```
 
 ---
 
-🔌 Integration Examples
+## 🔌 Integration Examples
 
-CI/CD (GitHub Actions) — Pipeline Tier
+### CI/CD (GitHub Actions) — Pipeline Tier
 
+```yaml
 name: Agent Risk Gate
 on: [pull_request]
 
@@ -266,9 +256,11 @@ jobs:
             -H "Content-Type: application/json" \
             -d "{\"code\":\"$(cat diff.txt | sed 's/\"/\\\"/g')\",\"mode\":\"pipeline\"}" \
             | tee result.json
+```
 
-JavaScript
+### JavaScript
 
+```ts
 export async function scan(code: string, mode: "basic"|"premium"|"pipeline") {
   const res = await fetch("https://app.teosegypt.com/analyze", {
     method: "POST",
@@ -279,64 +271,52 @@ export async function scan(code: string, mode: "basic"|"premium"|"pipeline") {
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
-
-
----
-
-📊 API Responses
-
-/pricing (200)
-
-Returns:
-
-mode + requirePayment
-
-network info
-
-USDC contract + payTo
-
-tier prices
-
-
-/analyze (200)
-
-Returns:
-
-tier
-
-price_preview
-
-payment_required
-
-result (findings + summary)
-
-
-/scan-dependencies (200)
-
-Returns:
-
-tier=premium
-
-price_preview
-
-payment_required
-
-result (vulns + riskScore)
-
-
+```
 
 ---
 
-📜 License
+## 📊 API Responses
 
-MIT — see LICENSE
+### `/pricing` (200)
 
+Returns:
+
+* mode + requirePayment
+* network info
+* USDC contract + payTo
+* tier prices
+
+### `/analyze` (200)
+
+Returns:
+
+* `tier`
+* `price_preview`
+* `payment_required`
+* `result` (findings + summary)
+
+### `/scan-dependencies` (200)
+
+Returns:
+
+* `tier=premium`
+* `price_preview`
+* `payment_required`
+* `result` (vulns + riskScore)
 
 ---
 
-<div align="center">Built for the agent economy. Paid per decision. Secured by the chain. ⚡️
+## 📜 License
 
-Try it now · Pricing · Star on GitHub
+MIT — see [LICENSE](LICENSE)
+
+---
+
+<div align="center">
+
+**Built for the agent economy. Paid per decision. Secured by the chain.** ⚡️
+
+[Try it now](https://app.teosegypt.com) · [Pricing](https://app.teosegypt.com/pricing) · [Star on GitHub](https://github.com/Elmahrosa/agent-code-risk-mcp)
 
 </div>
-```0
+```
