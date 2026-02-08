@@ -100,10 +100,8 @@ This project uses **manual x402 responses** instead of heavy middleware:
 
 > Manual x402 is ideal for CI/CD: no sessions, no keys, deterministic
 > **request → 402 → pay → retry**
-
-**Important:** Current MVP checks only for presence of a proof header.
-It does **not** verify payment on-chain yet.
-
+> 
+**Payment Verification:** Production mode verifies USDC payments on-chain via JSON-RPC (checks transaction receipt, confirmations, Transfer events, and payment amount). Set `X402_VERIFY_ONCHAIN=0` for local development/testing.
 ---
 
 ## 🔧 Setup
