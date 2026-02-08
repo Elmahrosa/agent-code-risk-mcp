@@ -1,27 +1,71 @@
 import express from "express";
 
-const app = express();
-app.use(express.json({ limit: "1mb" }));
+/**
+ * Tries to load the real engine from dist/ without guessing.
+ * We support multiple common export shapes:
+ * - default export function
+ * - named export: review | analyze | query | handleQuery
+ */
+async function loadEngine() {
+  const candidates = [
+    "./dist/review.js",
+    "./dist/review/index.js",
+    "./dist/index.js",
+    "./dist/server.js",
+    "./dist/api.js",
+  ];
 
-// --- Health ---
+  for (const p of candidates) {
+    try {
+      const mod = await import(`../${p}`); // server/ -> repo root
+      const fn =
+        mod?.default ||
+        mod?.review ||
+        mod?.analyze ||
+        mod?.query ||
+        mod?.handleQuery;
+
+      if (typeof fn === "function") {
+        return { path: p, fn };
+      }
+    } catch (_) {
+      // ignore and try next candidate
+    }
+  }
+
+  return null;
+}
+
+const app = express();
+app.use(express.json({ limit: "2mb" }));
+
+// --- Health & status ---
 app.get("/health", (req, res) => res.status(200).json({ ok: true }));
 
-// --- Docs UI ---
-app.get("/", (req, res) => {
-  res
-    .status(200)
-    .type("html")
-    .send(`<!doctype html>
+app.get("/api/v1/status", async (req, res) => {
+  const engine = await loadEngine();
+  res.status(200).json({
+    ok: true,
+    service: "agent-code-risk-mcp",
+    engine: engine ? { loaded: true, from: engine.path } : { loaded: false },
+  });
+});
+
+// --- Landing UI ---
+app.get("/", async (req, res) => {
+  const engine = await loadEngine();
+  res.status(200).type("html").send(`<!doctype html>
 <html>
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Agent Code Risk MCP</title>
   <style>
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;max-width:920px;margin:40px auto;padding:0 16px;line-height:1.5}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;max-width:980px;margin:40px auto;padding:0 16px;line-height:1.5}
     code,pre{background:#f5f5f5;padding:2px 6px;border-radius:6px}
     pre{padding:12px;overflow:auto}
     .card{border:1px solid #ddd;border-radius:12px;padding:16px;margin:14px 0}
+    .muted{opacity:.75}
     a{color:#0b57d0;text-decoration:none}
     a:hover{text-decoration:underline}
   </style>
@@ -31,46 +75,52 @@ app.get("/", (req, res) => {
   <p>Status: <b>Online ✅</b></p>
 
   <div class="card">
-    <h2>Endpoints</h2>
+    <h2>API</h2>
     <ul>
-      <li><a href="/health">GET /health</a> → service health</li>
-      <li><a href="/docs">GET /docs</a> → API & usage</li>
+      <li><a href="/health">GET /health</a></li>
+      <li><a href="/api/v1/status">GET /api/v1/status</a></li>
+      <li><code>POST /api/v1/query</code> (JSON)</li>
     </ul>
-    <p>If you already have API routes (e.g. <code>/api/...</code>) in your app, they remain available.</p>
+    <p class="muted">Engine: ${engine ? `loaded from <code>${engine.path}</code>` : `not auto-detected yet (will return 501 until wired)`}</p>
   </div>
 
   <div class="card">
-    <h2>Quick test</h2>
-    <pre>curl -s https://app.teosegypt.com/health</pre>
+    <h2>Example</h2>
+    <pre>curl -s https://app.teosegypt.com/api/v1/status</pre>
+    <pre>curl -s -X POST https://app.teosegypt.com/api/v1/query \\
+  -H "Content-Type: application/json" \\
+  -d '{"input":"..."}'</pre>
   </div>
 
-  <p style="opacity:.7">Elmahrosa / TEOS Labs</p>
+  <p class="muted">Elmahrosa / TEOS Labs</p>
 </body>
 </html>`);
 });
 
-app.get("/docs", (req, res) => {
-  res.status(200).type("html").send(`<!doctype html>
-<html><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Docs | Agent Code Risk MCP</title>
-<style>
-body{font-family:system-ui;max-width:920px;margin:40px auto;padding:0 16px;line-height:1.5}
-code,pre{background:#f5f5f5;padding:2px 6px;border-radius:6px}
-pre{padding:12px;overflow:auto}
-</style></head>
-<body>
-<h1>API Docs</h1>
-<p>Health:</p>
-<pre>GET /health</pre>
+// --- Query endpoint (real when engine is detected) ---
+app.post("/api/v1/query", async (req, res) => {
+  const engine = await loadEngine();
+  if (!engine) {
+    return res.status(501).json({
+      ok: false,
+      error: "EngineNotWired",
+      message:
+        "Express wrapper is live, but the real engine export was not auto-detected in dist/. " +
+        "Send the contents of src/ entrypoint (or the export name) and I will wire it precisely.",
+      hint: "Run: ls src && find dist -maxdepth 2 -type f -name '*.js' -print",
+    });
+  }
 
-<p>If your repo exposes HTTP APIs (example):</p>
-<pre>POST /api/v1/query
-Content-Type: application/json
-
-{"contract_address":"0x123","chain_id":"1"}</pre>
-
-<p>If you want me to wire real endpoints here (not just docs), tell me the exact routes you want live.</p>
-</body></html>`);
+  try {
+    const result = await engine.fn(req.body);
+    return res.status(200).json({ ok: true, engine: engine.path, result });
+  } catch (e) {
+    return res.status(500).json({
+      ok: false,
+      error: "EngineError",
+      message: e?.message || String(e),
+    });
+  }
 });
 
 const port = Number(process.env.PORT || 8000);
