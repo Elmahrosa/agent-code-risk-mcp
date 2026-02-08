@@ -9,7 +9,8 @@
     "start:mcp": "node dist/mcp/server.js",
     "dev": "ts-node src/http/app.ts",
     "dev:mcp": "ts-node src/mcp/server.ts",
-    "test": "node dist/http/app.js --help || echo \"(Add real tests later)\""
+    "test": "node dist/http/app.js --help || echo \"(Add real tests later)\"",
+    "prestart": "npm run build"
   },
   "keywords": [
     "mcp",
