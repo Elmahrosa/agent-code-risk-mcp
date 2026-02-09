@@ -7,15 +7,6 @@
 > **Fail-Fast is Key**  
 > In autonomous systems, delayed detection equals damage.  
 > Agent Code Risk MCP is designed to **block unsafe decisions immediately**, not report them after execution.
-
-**Autonomous systems fail differently than humans.**
-
-🔴 **Agent leaks API key** → $10K+ stolen compute  
-🔴 **Agent breaks authentication** → $100K data breach  
-🔴 **Agent violates compliance** → $1M+ regulatory fine
-
-*These are not bugs. These are autonomous decisions executed without governance.*
-
 **Agent Code Risk MCP prevents these failures BEFORE execution.**  
 *Real-time prevention — not retrospective scanning.*
 
@@ -30,6 +21,17 @@
 
 </div>
 
+
+
+
+**Autonomous systems fail differently than humans.**
+
+🔴 **Agent leaks API key** → $10K+ stolen compute  
+🔴 **Agent breaks authentication** → $100K data breach  
+🔴 **Agent violates compliance** → $1M+ regulatory fine
+
+*These are not bugs. These are autonomous decisions executed without governance.*
+
 ---
 
 ## 🎯 **What It Does**
@@ -38,7 +40,7 @@
 
 ✅ **Blocks** `eval()`, secrets, injection **before execution**  
 ✅ **Enforces** via **machine-readable BLOCK decisions** (not reports)  
-✅ **Optionally enforces** decisions via **x402 pay-per-decision** on Base ($0.25-$1.00)  
+✅ **Optionally enforces** decisions via **x402 pay-per-decision** on Base ($0.25–$1.00)  
 ✅ **Integrates** with AI agents, CI/CD, autonomous systems
 
 ```text
@@ -375,11 +377,11 @@ Agent Code Risk MCP operates under a **Fail-Fast, Zero-Trust model**:
 
 Agent Code Risk MCP is **not** designed to:
 
-- Replace full static analysis platforms (e.g., SonarQube, Semgrep)
-- Detect business-logic vulnerabilities
-- Provide legal, regulatory, or compliance guarantees
-- Act as an AI-based probabilistic guessing system
-- Automatically fix or rewrite code
+- ❌ Replace full static analysis platforms (e.g., SonarQube, Semgrep)
+- ❌ Detect business-logic vulnerabilities
+- ❌ Provide legal, regulatory, or compliance guarantees
+- ❌ Act as an AI-based probabilistic guessing system
+- ❌ Automatically fix or rewrite code
 
 **Its sole purpose is to block unsafe autonomous decisions before damage occurs.**
 
