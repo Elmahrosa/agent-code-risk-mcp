@@ -1,4 +1,3 @@
-
 <div align="center">
 
 # 🏺 Agent Code Risk MCP — TeosMcp
@@ -285,6 +284,7 @@ PORT=3000
 ## 🤝 Contributing & Support
 
 **Live API:** [https://app.teosegypt.com](https://app.teosegypt.com)
+
 **GitHub:** [https://github.com/Elmahrosa/agent-code-risk-mcp](https://github.com/Elmahrosa/agent-code-risk-mcp)
 
 MIT License — free to use, modify, deploy, and monetize.
