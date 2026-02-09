@@ -1,3 +1,4 @@
+
 <div align="center">
 
 # 🏺 Agent Code Risk MCP — TeosMcp
@@ -276,23 +277,24 @@ PORT=3000
 **Purpose:** block unsafe autonomous decisions **before damage occurs**.
 
 ---
+
 ## 🤝 Contributing & Support
 
-🛡️ **Fail‑Fast is Key** — stop damage before it happens.
+🛡️ **Fail-Fast is Key** — stop damage before it happens.
 
-**Live API:**  
-🔗 https://app.teosegypt.com
+**Live API:**
+🔗 [https://app.teosegypt.com](https://app.teosegypt.com)
 
 ⭐ **Star the project on GitHub**
 
-**GitHub Repository:**  
-🔗 https://github.com/Elmahrosa/agent-code-risk-mcp
+**GitHub Repository:**
+🔗 [https://github.com/Elmahrosa/agent-code-risk-mcp](https://github.com/Elmahrosa/agent-code-risk-mcp)
 
 **License:** MIT — free to use, modify, deploy, and monetize.
 
 <div align="center">
 
-🏺 **Governance for the Autonomous Era**  
+🏺 **Governance for the Autonomous Era**
 *Built for agents that execute decisions*
 
 </div>
