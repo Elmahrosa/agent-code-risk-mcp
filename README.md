@@ -1,26 +1,34 @@
-
 <div align="center">
 
-# Agent Code Risk MCP #TeosMcp
+# 🏺 Agent Code Risk MCP — TeosMcp  
+### *Where Egyptian history meets blockchain sovereignty*
+
 [![E2E Smoke Test](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml/badge.svg?branch=main)](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml)
-![TeosMcp](https://img.shields.io/badge/TeosMcp-Elmahrosa%20Blockchain-gold?style=plastic)
-[![TEOS](https://img.shields.io/badge/TEOS-Governance%20by%20Design-blue?style=flat-square)](https://github.com/Elmahrosa)
-[![Elmahrosa](https://img.shields.io/badge/Elmahrosa-Blockchain%20Ecosystem-gold?style=flat-square)](https://github.com/Elmahrosa)
-[![Base](https://img.shields.io/badge/Powered%20by-Base%20Network-0052FF?style=flat-square&logo=ethereum&logoColor=white)](https://base.org)
+[![Live API](https://img.shields.io/badge/Live%20API-Online-success?style=flat-square&color=gold)](https://app.teosegypt.com/health)
+![TeosMcp](https://img.shields.io/badge/TeosMcp-Elmahrosa%20Blockchain-papyrus?style=plastic)
+[![TEOS](https://img.shields.io/badge/TEOS-Governance%20by%20Design-deepblue?style=flat-square)](https://github.com/Elmahrosa)
+[![Elmahrosa](https://img.shields.io/badge/Elmahrosa-Civic%20Blockchain%20Ecosystem-gold?style=flat-square)](https://github.com/Elmahrosa)
+[![Powered by Base](https://img.shields.io/badge/Powered%20by-Base%20Network-0052FF?style=flat-square&logo=ethereum&logoColor=white)](https://base.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-blue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![Live API](https://img.shields.io/badge/Live%20API-Online-success?style=flat-square)](https://app.teosegypt.com/health)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-deepblue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-**Prevent AI agents from shipping insecure, unsafe, or non-compliant code.**
+---
 
-Built for **CI/CD pipelines** and **autonomous agents**  
-**x402 pay-per-decision** · **On-chain ready** · **Tiered enforcement**
+### ✨ Inspired by Egypt’s timeless legacy  
+From the **Pyramids’ precision** to the **Papyrus scrolls of governance**, TeosMcp carries forward Egypt’s heritage into the blockchain era.  
+We safeguard code the way scribes safeguarded history — ensuring **security, compliance, and trust** across civilizations old and new.
 
-[Live API](https://app.teosegypt.com) · [Pricing](https://app.teosegypt.com/pricing) · [GitHub](https://github.com/Elmahrosa/agent-code-risk-mcp)
+---
+
+**Prevent AI agents from shipping insecure, unsafe, or non-compliant code.**  
+Built for **CI/CD pipelines** and **autonomous agents** · **x402 pay-per-decision** · **On-chain ready** · **Tiered enforcement**
+
+---
+
+🔗 [Live API](https://app.teosegypt.com) · [Pricing](https://app.teosegypt.com/pricing) · [GitHub](https://github.com/Elmahrosa/agent-code-risk-mcp)
 
 </div>
 
----
 
 ## ✅ Live Status
 
