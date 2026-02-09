@@ -1,16 +1,17 @@
+
 <div align="center">
 
 # 🏺 Agent Code Risk MCP — TeosMcp  
 ### *Egyptian history reborn through blockchain sovereignty*
 
 [![E2E Smoke Test](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml/badge.svg?branch=main)](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml)
-[![Live API](https://img.shields.io/badge/Live%20API-Online-gold?style=flat-square)](https://app.teosegypt.com/health)
-![TeosMcp](https://img.shields.io/badge/TeosMcp-Elmahrosa%20Blockchain-papyrus?style=plastic)
-[![TEOS](https://img.shields.io/badge/TEOS-Governance%20by%20Design-deepblue?style=flat-square)](https://github.com/Elmahrosa)
+[![Live API](https://img.shields.io/badge/Live%20API-Online-success?style=flat-square)](https://app.teosegypt.com/health)
+![TeosMcp](https://img.shields.io/badge/TeosMcp-Elmahrosa%20Blockchain-gold?style=plastic)
+[![TEOS](https://img.shields.io/badge/TEOS-Governance%20by%20Design-blue?style=flat-square)](https://github.com/Elmahrosa)
 [![Elmahrosa](https://img.shields.io/badge/Elmahrosa-Civic%20Blockchain%20Ecosystem-gold?style=flat-square)](https://github.com/Elmahrosa)
 [![Powered by Base](https://img.shields.io/badge/Powered%20by-Base%20Network-0052FF?style=flat-square&logo=ethereum&logoColor=white)](https://base.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-deepblue?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3-informational?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
 🔗 [Live API](https://app.teosegypt.com) · [Pricing](https://app.teosegypt.com/pricing) · [GitHub](https://github.com/Elmahrosa/agent-code-risk-mcp)
 
@@ -29,14 +30,30 @@ Built for **CI/CD pipelines** and **autonomous agents** · **x402 pay-per-decisi
 
 ---
 
+## 🔴 Public Free Testing — Closing Soon
+
+**Free testing of the TEOS Decision Firewall is currently enabled.**  
+No wallet, no gas, no payment required during the public test window.
+
+```bash
+curl -X POST https://app.teosegypt.com/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"code":"eval(userInput)","mode":"basic"}'
+````
+
+⏳ **Free testing closes soon.**
+After that, pricing will apply per autonomous decision.
+
+---
+
 ## ✅ Live Status
 
-| Endpoint | Method | Description |
-|--------|--------|-------------|
-| `/health` | GET | Status, mode, pricing, network |
-| `/pricing` | GET | Public pricing & payment metadata |
-| `/analyze` | POST | Code risk analysis (basic / premium / pipeline) |
-| `/scan-dependencies` | POST | Dependency vulnerability scan |
+| Endpoint             | Method | Description                                     |
+| -------------------- | ------ | ----------------------------------------------- |
+| `/health`            | GET    | Status, mode, pricing, network                  |
+| `/pricing`           | GET    | Public pricing & payment metadata               |
+| `/analyze`           | POST   | Code risk analysis (basic / premium / pipeline) |
+| `/scan-dependencies` | POST   | Dependency vulnerability scan                   |
 
 ---
 
@@ -52,19 +69,19 @@ This is **not** a generic scanner — it is a **control layer** for systems that
 
 ## 🔑 Key Capabilities (5)
 
-1. **Decision-Level Enforcement**  
+1. **Decision-Level Enforcement**
    Security checks are priced and enforced per autonomous decision.
 
-2. **Agent-Native Design**  
+2. **Agent-Native Design**
    Built for AI agents, MCP clients, and CI/CD automation.
 
-3. **Public Pricing Discovery**  
+3. **Public Pricing Discovery**
    `/pricing` exposes live prices, network, and payment rules.
 
-4. **Optional On-Chain Verification**  
+4. **Optional On-Chain Verification**
    USDC transfers on Base can be fully verified or disabled in test mode.
 
-5. **Stateless & Deterministic**  
+5. **Stateless & Deterministic**
    No storage, no training, no telemetry — pure execution safety.
 
 ---
@@ -72,10 +89,11 @@ This is **not** a generic scanner — it is a **control layer** for systems that
 ## 🚀 Quick Start
 
 ### Health & Pricing
+
 ```bash
 curl https://app.teosegypt.com/health
 curl https://app.teosegypt.com/pricing
-````
+```
 
 ### Analyze Code
 
@@ -99,17 +117,27 @@ curl -X POST https://app.teosegypt.com/scan-dependencies \
 
 Pricing is **live and discoverable** via:
 
+```bash
+curl https://app.teosegypt.com/pricing
 ```
-GET https://app.teosegypt.com/pricing
-```
+
+### Current Pricing
+
+⚠️ **Free testing of the TEOS Decision Firewall closes soon.**
+
+After the public test window:
+
+* **$0.25** per **agent decision** (Basic)
+* **$0.50** per **premium scan**
+* **$1.00** per **pipeline gate (CI/CD)**
 
 ### Tiers
 
-| Tier         | Use Case                     | Endpoint                                      |
-| ------------ | ---------------------------- | --------------------------------------------- |
-| **Basic**    | Agent decisions, fast checks | `/analyze?mode=basic`                         |
-| **Premium**  | Higher assurance             | `/analyze?mode=premium`, `/scan-dependencies` |
-| **Pipeline** | CI/CD gates                  | `/analyze?mode=pipeline`                      |
+| Tier         | Use Case                     | Endpoint                                          |
+| ------------ | ---------------------------- | ------------------------------------------------- |
+| **Basic**    | Agent decisions, fast checks | `/analyze` (`mode=basic`)                         |
+| **Premium**  | Higher assurance             | `/analyze` (`mode=premium`), `/scan-dependencies` |
+| **Pipeline** | CI/CD gates                  | `/analyze` (`mode=pipeline`)                      |
 
 Each response includes:
 
@@ -118,7 +146,7 @@ Each response includes:
   "tier": "basic",
   "price_preview": 0.25,
   "payment_required": false,
-  "result": { ... }
+  "result": { "...": "..." }
 }
 ```
 
