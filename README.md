@@ -227,21 +227,17 @@ curl https://app.teosegypt.com/pricing
 ## ⚙️ Environment Configuration
 
 ```env
-# Mode
 TEOS_MODE=production
 TEOS_REQUIRE_PAYMENT=1
 
-# Network
 X402_NETWORK=eip155:8453
 X402_PAY_TO=0x6CB857A62f6a55239D67C6bD1A8ed5671605566D
 X402_VERIFY_ONCHAIN=0
 
-# Pricing
 PRICE_BASIC=0.25
 PRICE_PREMIUM=0.50
 PRICE_PIPELINE=1.00
 
-# Server
 HOST=0.0.0.0
 PORT=3000
 ```
@@ -280,21 +276,23 @@ PORT=3000
 **Purpose:** block unsafe autonomous decisions **before damage occurs**.
 
 ---
-
 ## 🤝 Contributing & Support
 
-**Live API:** [https://app.teosegypt.com](https://app.teosegypt.com)
+🛡️ **Fail‑Fast is Key** — stop damage before it happens.
 
-**GitHub:** [https://github.com/Elmahrosa/agent-code-risk-mcp](https://github.com/Elmahrosa/agent-code-risk-mcp)
+**Live API:**  
+🔗 https://app.teosegypt.com
 
-MIT License — free to use, modify, deploy, and monetize.
+⭐ **Star the project on GitHub**
+
+**GitHub Repository:**  
+🔗 https://github.com/Elmahrosa/agent-code-risk-mcp
+
+**License:** MIT — free to use, modify, deploy, and monetize.
 
 <div align="center">
 
-🏺 **Governance for the autonomous era**
+🏺 **Governance for the Autonomous Era**  
 *Built for agents that execute decisions*
-
-⭐ **Star on GitHub**
-🛡️ **Fail-Fast is Key**
 
 </div>
