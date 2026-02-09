@@ -23,6 +23,24 @@
 
 
 
+## 🔐 Deterministic Governance (Why This Is Different)
+
+Agent Code Risk MCP is **not a scanner**.  
+It is a **deterministic decision system**.
+
+**Same input → same output → provable enforcement**
+
+- 🔒 **Deterministic results** — no stochastic AI decisions  
+- 🧾 **Machine-readable outcomes** — `ALLOW | WARN | BLOCK`  
+- 🔏 **Governance-ready** — decisions can be logged, signed, audited  
+- ⚡ **Fail-fast by design** — no runtime execution on CRITICAL risk  
+
+> Suitable for **regulated AI, enterprise DevSecOps, and sovereign digital infrastructure**.
+
+---
+
+
+
 
 **Autonomous systems fail differently than humans.**
 
