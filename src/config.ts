@@ -1,4 +1,3 @@
-// src/config.ts
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -32,6 +31,30 @@ function optEnv(key: string, fallback: string): string {
   return val && val.trim() !== "" ? val.trim() : fallback;
 }
 
+/**
+ * Prefer the first env var name that exists (non-empty). Otherwise fallback.
+ */
+function optEnvAny(keys: string[], fallback: string): string {
+  for (const k of keys) {
+    const v = process.env[k];
+    if (v && v.trim() !== "") return v.trim();
+  }
+  return fallback;
+}
+
+/**
+ * Parse booleans safely.
+ * True:  "1", "true", "yes", "on"
+ * False: "0", "false", "no", "off", "" (or missing uses fallback)
+ */
+function resolveBoolAny(keys: string[], fallback: boolean): boolean {
+  const raw = optEnvAny(keys, fallback ? "1" : "0").toLowerCase().trim();
+  if (["1", "true", "yes", "on"].includes(raw)) return true;
+  if (["0", "false", "no", "off"].includes(raw)) return false;
+  // If weird value, fall back deterministically
+  return fallback;
+}
+
 function resolveNetwork(): NetworkId {
   const raw = optEnv("X402_NETWORK", "eip155:8453");
   if (!(raw in NETWORKS)) {
@@ -43,50 +66,79 @@ function resolveNetwork(): NetworkId {
 }
 
 function resolveMode(): TeosMode {
-  const raw = optEnv("TEOS_MODE", "live").toLowerCase();
+  // accept TEOS_MODE or MODE
+  const raw = optEnvAny(["TEOS_MODE", "MODE"], "live").toLowerCase().trim();
   return raw === "test" ? "test" : "live";
 }
 
-function resolveBool01(key: string, fallback01: "0" | "1"): boolean {
-  const raw = optEnv(key, fallback01).trim();
-  return raw === "1" || raw.toLowerCase() === "true" || raw.toLowerCase() === "yes";
-}
+export const config = (() => {
+  const teosMode = resolveMode();
 
-export const config = {
-  // Server
-  port: parseInt(optEnv("PORT", "8000"), 10),
-  host: optEnv("HOST", "0.0.0.0"),
+  // Payment gating:
+  // - In TEST mode, default OFF (safe dev experience)
+  // - In LIVE mode, default ON (enforcement by default)
+  //
+  // Accept BOTH:
+  // - TEOS_REQUIRE_PAYMENT (canonical)
+  // - REQUIRE_PAYMENT (common)
+  const requirePaymentDefault = teosMode === "test" ? false : true;
+  const requirePayment = resolveBoolAny(
+    ["TEOS_REQUIRE_PAYMENT", "REQUIRE_PAYMENT"],
+    requirePaymentDefault
+  );
 
-  // Mode / gating
-  teosMode: resolveMode(), // "test" | "live"
-  requirePayment: resolveBool01("TEOS_REQUIRE_PAYMENT", "1"),
+  // Only require X402_PAY_TO when payment is enabled
+  const payTo = requirePayment ? reqEnv("X402_PAY_TO") : optEnv("X402_PAY_TO", "");
 
-  // Network
-  networkId: resolveNetwork(),
-  get network() {
-    return NETWORKS[this.networkId];
-  },
+  // Verification:
+  // Default OFF in test, ON in live (but configurable)
+  const verifyOnChainDefault = teosMode === "test" ? false : true;
+  const verifyOnChain = resolveBoolAny(["X402_VERIFY_ONCHAIN"], verifyOnChainDefault);
 
-  // Payment settings
-  payTo: reqEnv("X402_PAY_TO"),
-  verifyOnChain: resolveBool01("X402_VERIFY_ONCHAIN", "0"),
-  confirmations: parseInt(optEnv("X402_CONFIRMATIONS", "2"), 10),
+  const networkId = resolveNetwork();
 
-  // Pricing
-  priceBasic: optEnv("PRICE_BASIC", "0.25"),
-  pricePremium: optEnv("PRICE_PREMIUM", "0.50"),
-  pricePipeline: optEnv("PRICE_PIPELINE", "1.00"),
+  const cfg = {
+    // Server
+    port: parseInt(optEnv("PORT", "8000"), 10),
+    host: optEnv("HOST", "0.0.0.0"),
 
-  // RPC / USDC overrides
-  get rpcUrl(): string {
-    return optEnv("RPC_URL_BASE", NETWORKS[this.networkId].rpcUrl);
-  },
+    // Mode / gating
+    teosMode,
+    requirePayment,
 
-  get usdcAddress(): string {
-    // allow override via USDC_ADDRESS; else network default
-    return optEnv("USDC_ADDRESS", NETWORKS[this.networkId].usdcAddress);
-  },
-} as const;
+    // Network
+    networkId,
+    get network() {
+      return NETWORKS[this.networkId];
+    },
+
+    // Payment settings
+    payTo,
+    verifyOnChain,
+    confirmations: parseInt(optEnv("X402_CONFIRMATIONS", "2"), 10),
+
+    // Pricing
+    priceBasic: optEnv("PRICE_BASIC", "0.25"),
+    pricePremium: optEnv("PRICE_PREMIUM", "0.50"),
+    pricePipeline: optEnv("PRICE_PIPELINE", "1.00"),
+
+    // RPC / USDC overrides
+    get rpcUrl(): string {
+      return optEnv("RPC_URL_BASE", NETWORKS[this.networkId].rpcUrl);
+    },
+
+    get usdcAddress(): string {
+      return optEnv("USDC_ADDRESS", NETWORKS[this.networkId].usdcAddress);
+    },
+  } as const;
+
+  // If payment is enabled, ensure payTo is non-empty
+  if (cfg.requirePayment && (!cfg.payTo || cfg.payTo.trim() === "")) {
+    throw new Error("Missing required env var: X402_PAY_TO (required when payment is enabled)");
+  }
+
+  return cfg;
+})();
 
 export function printConfig(): void {
   console.log("┌─────────────────────────────────────────────┐");
@@ -96,7 +148,7 @@ export function printConfig(): void {
   console.log(`│  Require Pay  : ${config.requirePayment ? "ON" : "OFF"}`);
   console.log(`│  Network      : ${config.network.name} (${config.networkId})`);
   console.log(`│  Chain ID     : ${config.network.chainId}`);
-  console.log(`│  Pay-to       : ${config.payTo}`);
+  console.log(`│  Pay-to       : ${config.payTo || "(disabled in test)"}`);
   console.log(`│  USDC         : ${config.usdcAddress}`);
   console.log(`│  Price basic  : $${config.priceBasic} USDC`);
   console.log(`│  Price premium: $${config.pricePremium} USDC`);
