@@ -2,7 +2,7 @@
 <div align="center">
 
 # Agent Code Risk MCP #TeosMcp
-
+[![E2E Smoke Test](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml/badge.svg?branch=main)](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml)
 ![TeosMcp](https://img.shields.io/badge/TeosMcp-Elmahrosa%20Blockchain-gold?style=plastic)
 [![TEOS](https://img.shields.io/badge/TEOS-Governance%20by%20Design-blue?style=flat-square)](https://github.com/Elmahrosa)
 [![Elmahrosa](https://img.shields.io/badge/Elmahrosa-Blockchain%20Ecosystem-gold?style=flat-square)](https://github.com/Elmahrosa)
