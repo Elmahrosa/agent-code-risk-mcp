@@ -4,6 +4,16 @@ Agent Code Risk MCP enforces a **Fail-Fast, Zero-Trust security framework** for 
 
 ---
 
+## Governance Notice
+
+This repository operates under the Elmahrosa International
+and TEOS Sovereign Security Policy.
+
+For organization-wide disclosure rules and constitutional authority,
+see:
+https://github.com/Elmahrosa/.github/blob/main/SECURITY.md
+
+
 ## Core Principles
 
 - **Untrusted by default**: All autonomous code is treated as hostile until proven safe
