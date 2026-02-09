@@ -241,4 +241,3 @@ MIT License — free to use, modify, and deploy.
 [Try it](https://app.teosegypt.com) · [Pricing](https://app.teosegypt.com/pricing)
 
 </div>
-```
