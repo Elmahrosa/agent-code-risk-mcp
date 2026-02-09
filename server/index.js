@@ -1,23 +1,23 @@
 import express from "express";
 
 /**
- * Tries to load the real engine from dist/ without guessing.
- * We support multiple common export shapes:
+ * Tries to load the real engine from dist/ without guessing a single export name.
+ * Supported export shapes:
  * - default export function
- * - named export: review | analyze | query | handleQuery
+ * - named: review | analyze | query | handleQuery
  */
 async function loadEngine() {
   const candidates = [
-    "./dist/review.js",
-    "./dist/review/index.js",
-    "./dist/index.js",
-    "./dist/server.js",
-    "./dist/api.js",
+    "../dist/review.js",
+    "../dist/review/index.js",
+    "../dist/index.js",
+    "../dist/server.js",
+    "../dist/api.js",
   ];
 
   for (const p of candidates) {
     try {
-      const mod = await import(`../${p}`); // server/ -> repo root
+      const mod = await import(p);
       const fn =
         mod?.default ||
         mod?.review ||
@@ -26,10 +26,10 @@ async function loadEngine() {
         mod?.handleQuery;
 
       if (typeof fn === "function") {
-        return { path: p, fn };
+        return { path: p.replace("../", ""), fn };
       }
-    } catch (_) {
-      // ignore and try next candidate
+    } catch {
+      // ignore and try next
     }
   }
 
@@ -39,10 +39,15 @@ async function loadEngine() {
 const app = express();
 app.use(express.json({ limit: "2mb" }));
 
-// --- Health & status ---
-app.get("/health", (req, res) => res.status(200).json({ ok: true }));
+// ─────────────────────────────────────────────
+// Health
+// ─────────────────────────────────────────────
+app.get("/health", (_req, res) => res.status(200).json({ ok: true }));
 
-app.get("/api/v1/status", async (req, res) => {
+// ─────────────────────────────────────────────
+// Status
+// ─────────────────────────────────────────────
+app.get("/api/v1/status", async (_req, res) => {
   const engine = await loadEngine();
   res.status(200).json({
     ok: true,
@@ -51,8 +56,10 @@ app.get("/api/v1/status", async (req, res) => {
   });
 });
 
-// --- Landing UI ---
-app.get("/", async (req, res) => {
+// ─────────────────────────────────────────────
+// Landing UI
+// ─────────────────────────────────────────────
+app.get("/", async (_req, res) => {
   const engine = await loadEngine();
   res.status(200).type("html").send(`<!doctype html>
 <html>
@@ -86,8 +93,8 @@ app.get("/", async (req, res) => {
 
   <div class="card">
     <h2>Example</h2>
-    <pre>curl -s https://app.teosegypt.com/api/v1/status</pre>
-    <pre>curl -s -X POST https://app.teosegypt.com/api/v1/query \\
+    <pre>curl -s http://localhost:8000/api/v1/status</pre>
+    <pre>curl -s -X POST http://localhost:8000/api/v1/query \\
   -H "Content-Type: application/json" \\
   -d '{"input":"..."}'</pre>
   </div>
@@ -97,17 +104,20 @@ app.get("/", async (req, res) => {
 </html>`);
 });
 
-// --- Query endpoint (real when engine is detected) ---
+// ─────────────────────────────────────────────
+// Query endpoint (real when engine is detected)
+// ─────────────────────────────────────────────
 app.post("/api/v1/query", async (req, res) => {
   const engine = await loadEngine();
+
   if (!engine) {
     return res.status(501).json({
       ok: false,
       error: "EngineNotWired",
       message:
         "Express wrapper is live, but the real engine export was not auto-detected in dist/. " +
-        "Send the contents of src/ entrypoint (or the export name) and I will wire it precisely.",
-      hint: "Run: ls src && find dist -maxdepth 2 -type f -name '*.js' -print",
+        "Build dist and ensure it exports a function (default or one of: review/analyze/query/handleQuery).",
+      hint: "Run build, then verify dist outputs: ls dist && find dist -maxdepth 2 -type f -name '*.js' -print",
     });
   }
 
@@ -123,5 +133,8 @@ app.post("/api/v1/query", async (req, res) => {
   }
 });
 
+// ─────────────────────────────────────────────
+// Start
+// ─────────────────────────────────────────────
 const port = Number(process.env.PORT || 8000);
 app.listen(port, "0.0.0.0", () => console.log("HTTP on", port));
