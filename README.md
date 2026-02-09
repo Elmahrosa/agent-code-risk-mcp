@@ -7,6 +7,7 @@
 > **Fail-Fast is Key**  
 > In autonomous systems, delayed detection equals damage.  
 > Agent Code Risk MCP is designed to **block unsafe decisions immediately**, not report them after execution.
+
 **Agent Code Risk MCP prevents these failures BEFORE execution.**  
 *Real-time prevention — not retrospective scanning.*
 
@@ -22,8 +23,6 @@
 
 </div>
 
-
-
 ## 🔐 Deterministic Governance (Why This Is Different)
 
 Agent Code Risk MCP is **not a scanner**.  
@@ -33,15 +32,14 @@ It is a **deterministic decision system**.
 
 - 🔒 **Deterministic results** — no stochastic AI decisions  
 - 🧾 **Machine-readable outcomes** — `ALLOW | WARN | BLOCK`  
-- 🔏 **Governance-ready** — decisions can be logged, signed, audited  
+- 🔏 **Governance-ready** — decisions can be logged and audited  
 - ⚡ **Fail-fast by design** — no runtime execution on CRITICAL risk  
+
+**Agent Code Risk MCP is designed to be machine-enforceable first, human-readable second.**
 
 > Suitable for **regulated AI, enterprise DevSecOps, and sovereign digital infrastructure**.
 
 ---
-
-
-
 
 **Autonomous systems fail differently than humans.**
 
@@ -53,7 +51,7 @@ It is a **deterministic decision system**.
 
 ---
 
-## 🎯 **What It Does**
+## 🎯 What It Does
 
 **Agent Code Risk MCP** is a **production-grade decision firewall** that:
 
@@ -72,7 +70,7 @@ Agent generates code → MCP → BLOCK/ALLOW → Safe execution
 
 ---
 
-## 👥 **Who Needs This**
+## 👥 Who Needs This
 
 | Role | Problem Solved | Integration |
 |------|----------------|-------------|
@@ -84,7 +82,7 @@ Agent generates code → MCP → BLOCK/ALLOW → Safe execution
 
 ---
 
-## 🛡️ **Fail-Fast Enforcement**
+## 🛡️ Fail-Fast Enforcement
 
 > 🚫 **Critical risks → IMMEDIATE BLOCK**  
 > No execution. No merge. No deployment.
@@ -112,7 +110,7 @@ curl -X POST https://app.teosegypt.com/analyze \
   "price_preview": 0.25,
   "payment_required": false,
   "result": {
-    "decision": "WARN",
+    "decision": "BLOCK",
     "overallRisk": "critical",
     "findings": [{
       "rule": "no-eval",
@@ -125,7 +123,7 @@ curl -X POST https://app.teosegypt.com/analyze \
 
 ---
 
-## 🔴 **Public Beta — Live Now**
+## 🔴 Public Beta — Live Now
 
 Free during beta. No wallet required.
 
@@ -134,18 +132,13 @@ Free during beta. No wallet required.
 curl -X POST https://app.teosegypt.com/analyze \
   -H "Content-Type: application/json" \
   -d '{"code":"eval(userInput)","mode":"basic"}'
-
-# Scan dependencies for vulnerabilities
-curl -X POST https://app.teosegypt.com/scan-dependencies \
-  -H "Content-Type: application/json" \
-  -d '{"manifest":"{\"dependencies\":{\"lodash\":\"4.17.15\"}}"}'
 ```
 
-⏳ **Beta ends soon → $0.25–$1.00 per decision**
+⏳ **Beta pricing subject to change → $0.25–$1.00 per decision**
 
 ---
 
-## 💰 **Pricing (Post-Beta)**
+## 💰 Pricing (Post-Beta)
 
 | Tier | Price | Use Case |
 |------|-------|----------|
@@ -170,9 +163,9 @@ $0.25 is not a cost — it's insurance at execution time.
 
 ---
 
-## 🚀 **5-Minute Integration**
+## 🚀 5-Minute Integration
 
-### 1. **API (Instant)**
+### 1. API (Instant)
 
 ```bash
 curl -X POST https://app.teosegypt.com/analyze \
@@ -180,7 +173,7 @@ curl -X POST https://app.teosegypt.com/analyze \
   -d '{"code":"const x = eval(input);","mode":"pipeline"}'
 ```
 
-### 2. **GitHub Actions**
+### 2. GitHub Actions
 
 ```yaml
 name: Agent Security Gate
@@ -208,7 +201,7 @@ jobs:
           fi
 ```
 
-### 3. **Claude Desktop (MCP)**
+### 3. Claude Desktop (MCP)
 
 ```bash
 # Start MCP server
@@ -229,7 +222,7 @@ Add to `claude_desktop_config.json`:
 
 ---
 
-## 💳 **x402 Payment Flow (Production)**
+## 💳 x402 Payment Flow (Production)
 
 1. Agent calls `/analyze` → Returns `402 Payment Required`
 2. Response includes payment details: `{"payTo":"0x6CB...","amount":"0.25"}`
@@ -249,7 +242,7 @@ PRICE_PIPELINE=1.00
 
 ---
 
-## 🧪 **Test Mode vs Production**
+## 🧪 Test Mode vs Production
 
 | Mode | Cost | Verification | Use |
 |------|------|--------------|-----|
@@ -264,20 +257,54 @@ curl https://app.teosegypt.com/health
 curl https://app.teosegypt.com/pricing
 ```
 
-**Switch modes:**
-```env
-# Test mode (current beta)
-TEOS_MODE=test
-REQUIRE_PAYMENT=0
+---
 
-# Production mode (after beta)
-TEOS_MODE=production
-REQUIRE_PAYMENT=1
-```
+## 🚧 Product Development & Feature Updates
+
+The current release focuses on **deterministic, fail-fast enforcement** for JavaScript/TypeScript agent code.  
+Upcoming updates are focused on **accuracy, coverage, and enterprise adoption**.
+
+### 1. Multi-Language Risk Detection
+- Extend analysis beyond JS/TS to **Python, Java, and Go**
+- Introduce **language-aware parsing (AST-based)** instead of regex-only detection
+- Improve precision and reduce false positives for production agents
+
+### 2. Advanced Fix Suggestions (Premium)
+- Upgrade basic patch hints to **context-aware AI-generated fixes**
+- Safer alternatives suggested per language and risk type
+- Designed for autonomous agents and CI pipelines
+
+### 3. Agent Framework Integrations
+- Expand beyond Claude Desktop MCP
+- Native integrations planned for:
+  - **LangChain**
+  - **LlamaIndex**
+  - **AutoGen**
+- Enable seamless guardrails inside agent orchestration flows
+
+### 4. Customizable Rule Sets
+- Allow organizations to define **custom security rules and policies**
+- Config-based rules (`rules.json` / policy files)
+- Organization-specific thresholds and enforcement modes
+
+### 5. Reporting & Risk Analytics
+- Visibility into:
+  - BLOCK vs ALLOW decisions
+  - Risk trends over time
+  - False-positive feedback
+- Designed for DevSecOps and security leadership
+
+### 6. Expanded CI/CD Integrations
+- Pre-built support planned for:
+  - **GitLab CI**
+  - **Jenkins**
+  - **Azure DevOps**
+  - **Bitbucket**
+- Consistent fail-fast enforcement across pipelines
 
 ---
 
-## 📁 **Self-Hosted Deployment**
+## 📁 Self-Hosted Deployment
 
 ```bash
 git clone https://github.com/Elmahrosa/agent-code-risk-mcp
@@ -314,7 +341,30 @@ PORT=3000
 
 ---
 
-## 🏗️ **Architecture**
+## 🔍 What We Detect
+
+### 🔴 Critical Risks
+- **Code Execution:** `eval()`, `new Function()`, shell commands
+- **Secret Leaks:** API keys, private keys, AWS credentials (AKIA...)
+- **SQL Injection:** String concatenation in queries
+- **Command Injection:** Unsafe shell execution patterns
+
+### 🟠 High Risks
+- **XSS Vectors:** `innerHTML`, `document.write`
+- **Prototype Pollution:** `__proto__` manipulation
+- **SSRF:** Unvalidated external URLs
+- **Auth Bypass:** Disabled authentication checks
+- **Unsafe Deserialization:** pickle.loads, yaml.load
+
+### 🟡 Medium Risks
+- **Weak Crypto:** MD5, SHA-1, Math.random() for security
+- **CORS Wildcards:** Allow-Origin: *
+- **Path Traversal:** `../` patterns
+- **Insecure Configs:** TLS disabled, debug mode in prod
+
+---
+
+## 🏗️ Architecture
 
 ```text
 ┌─────────────────┐    x402    ┌──────────────────┐
@@ -329,147 +379,30 @@ PORT=3000
                                 └──────────────────┘
 ```
 
-**Repository structure:**
-```text
-src/
-├── core/          # Risk detection patterns
-│   └── review.ts  # Heuristic rules (eval, secrets, injection)
-├── http/          # Express API + x402 middleware
-│   ├── app.ts
-│   └── x402Verify.ts
-├── mcp/           # Claude Desktop protocol
-│   └── server.ts
-├── tools/         # Analysis modules
-│   ├── analyzeCode.ts
-│   └── scanDependencies.ts
-└── config.ts      # Centralized configuration
-```
-
 ---
 
-## 🔍 **What We Detect**
-
-### 🔴 **Critical Risks**
-- **Code Execution:** `eval()`, `new Function()`, shell commands
-- **Secret Leaks:** API keys, private keys, AWS credentials (AKIA...)
-- **SQL Injection:** String concatenation in queries
-- **Command Injection:** Unsafe shell execution patterns
-
-### 🟠 **High Risks**
-- **XSS Vectors:** `innerHTML`, `document.write`
-- **Prototype Pollution:** `__proto__` manipulation
-- **SSRF:** Unvalidated external URLs
-- **Auth Bypass:** Disabled authentication checks
-- **Unsafe Deserialization:** pickle.loads, yaml.load
-
-### 🟡 **Medium Risks**
-- **Weak Crypto:** MD5, SHA-1, Math.random() for security
-- **CORS Wildcards:** Allow-Origin: *
-- **Path Traversal:** `../` patterns
-- **Insecure Configs:** TLS disabled, debug mode in prod
-
-### 🔵 **Low/Info**
-- **Console Logging:** Debug statements in production
-- **TODOs:** Unresolved FIXME/HACK comments
-- **Linter Suppressions:** eslint-disable, @ts-ignore
-
----
-
-## 🧱 **Security Model & Non-Goals**
-
-### **Security Model**
+## 🔒 Security Model & Non-Goals
 
 🔐 **Full details:** [SECURITY.md](SECURITY.md)
 
-Agent Code Risk MCP operates under a **Fail-Fast, Zero-Trust model**:
-
-- All autonomous code is treated as untrusted by default
-- Deterministic rules are applied **before** execution, merge, or deployment
-- Critical risks result in an **immediate BLOCK decision**
-- Responses are machine-readable and designed for automated enforcement
-- Payment (x402) serves as an optional economic enforcement layer, not authentication
-- Provides a hosted reference deployment; enforcement logic is fully self-hostable
-
 **The system prioritizes prevention over observability.**
 
-### **Non-Goals**
+### Non-Goals
+- ❌ Replace full static analysis platforms
+- ❌ Detect business-logic vulnerabilities  
+- ❌ Provide legal/compliance guarantees
+- ❌ Act as probabilistic AI guessing system
 
-Agent Code Risk MCP is **not** designed to:
-
-- ❌ Replace full static analysis platforms (e.g., SonarQube, Semgrep)
-- ❌ Detect business-logic vulnerabilities
-- ❌ Provide legal, regulatory, or compliance guarantees
-- ❌ Act as an AI-based probabilistic guessing system
-- ❌ Automatically fix or rewrite code
-
-**Its sole purpose is to block unsafe autonomous decisions before damage occurs.**
+**Purpose:** Block unsafe autonomous decisions before damage occurs.
 
 ---
 
-## 🔒 **Security Review Note**
-
-Agent Code Risk MCP is a **security enforcement system**, not a vulnerability scanner library.
-
-Before production use, organizations are expected to:
-
-✅ Review the deterministic rules and heuristics used for enforcement  
-✅ Run the system in Test Mode to validate behavior against internal policies  
-✅ Self-host or fork the project if required by internal security/compliance standards
-
-This project is intentionally **transparent and open-source** to enable independent verification and controlled adoption.
-
----
-
-## 🤝 **Contributing**
-
-Contributions welcome! Areas of interest:
-
-- Additional risk detection patterns
-- Language-specific rules (Python, Go, Rust)
-- Performance optimizations
-- Integration examples
-- Security enhancements
-
-**Process:**
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
----
-
-## 📞 **Support & Resources**
+## 🤝 Contributing & Support
 
 **Live API:** https://app.teosegypt.com  
-**Health Check:** https://app.teosegypt.com/health  
-**Pricing Info:** https://app.teosegypt.com/pricing  
 **GitHub:** https://github.com/Elmahrosa/agent-code-risk-mcp  
-**Issues:** https://github.com/Elmahrosa/agent-code-risk-mcp/issues
 
-**Payment Wallet:** `0x6CB857A62f6a55239D67C6bD1A8ed5671605566D`  
-**Network:** Base Mainnet (Chain ID: 8453)  
-**USDC Contract:** `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
-
-**Security Issues:** See [SECURITY.md](SECURITY.md) for disclosure policy
-
----
-
-## 📜 **Legal Notice**
-
-**Technical enforcement only.** This tool provides automated code risk detection and blocking. It does **not** constitute legal advice, compliance certification, or security guarantees. Organizations are responsible for their own security policies and regulatory compliance.
-
-**Use at your own risk.**
-
----
-
-## 📄 **License**
-
-**MIT License** — Free to use, modify, deploy, and monetize.
-
-See [LICENSE](LICENSE) file for full details.
-
----
+**MIT License** — Free to use, modify, deploy, monetize.
 
 <div align="center">
 
@@ -478,19 +411,9 @@ See [LICENSE](LICENSE) file for full details.
 
 **Live now:** https://app.teosegypt.com
 
-⭐ **Star on GitHub** → [github.com/Elmahrosa/agent-code-risk-mcp](https://github.com/Elmahrosa/agent-code-risk-mcp)
+⭐ **Star on GitHub**
 
-🛡️ **Fail-Fast is Key: Stop damage before it happens**
-
----
-
-**Built with:**
-- TypeScript — Type-safe code
-- Express — HTTP API framework
-- Base Network — On-chain payment settlement
-- MCP SDK — Agent integration protocol
-- USDC — Stable cryptocurrency payments
-
-**Powered by TEOS Labs** | **Egyptian heritage meets blockchain governance**
+🛡️ **Fail-Fast is Key**
 
 </div>
+```
