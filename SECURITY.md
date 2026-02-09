@@ -71,6 +71,22 @@ graph TD
 
 ---
 
+## Explicit BLOCK Guarantees
+
+Agent Code Risk MCP will **always BLOCK** autonomous execution when detecting:
+
+- Dynamic execution (`eval`, `new Function`, `exec`)
+- Hardcoded secrets or private keys
+- Authentication bypass logic
+- Unsafe deserialization
+- Network calls with untrusted input
+- CI/CD secret exposure
+- Policy-defined CRITICAL patterns
+
+These guarantees are **non-negotiable** in production mode.
+
+If it BLOCKS, execution **does not happen**.
+
 ## Production Hardening
 
 | Phase | Action | Purpose |
