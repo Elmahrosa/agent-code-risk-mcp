@@ -146,6 +146,7 @@ curl -X POST https://app.teosegypt.com/analyze \
 | **Premium** | $0.50 | High assurance + AI fixes |
 | **Pipeline** | $1.00 | CI/CD gates, full enforcement |
 
+
 **Why this price?**
 
 Because the cost of ONE bad autonomous decision is never $0.25.
@@ -161,7 +162,6 @@ $0.25 is not a cost — it's insurance at execution time.
 
 **Payment:** USDC on Base Network (Chain ID: 8453)
 
----
 
 ## 🚀 5-Minute Integration
 
@@ -234,7 +234,7 @@ Add to `claude_desktop_config.json`:
 ```env
 X402_PAY_TO=0x6CB857A62f6a55239D67C6bD1A8ed5671605566D
 X402_NETWORK=eip155:8453
-X402_VERIFY_ONCHAIN=1
+X402_VERIFY_ONCHAIN=0  # set to 1 to enable on-chain verification
 PRICE_BASIC=0.25
 PRICE_PREMIUM=0.50
 PRICE_PIPELINE=1.00
@@ -246,8 +246,8 @@ PRICE_PIPELINE=1.00
 
 | Mode | Cost | Verification | Use |
 |------|------|--------------|-----|
-| **TEST** | Free | Disabled | Development/Beta |
-| **PROD** | USDC | On-chain | Production |
+| **TEST** | Free | Off | Development/Beta |
+| **PROD** | USDC | Configurable (header / on-chain) | Production |
 
 ```bash
 # Check current mode
@@ -416,4 +416,3 @@ PORT=3000
 🛡️ **Fail-Fast is Key**
 
 </div>
-```
