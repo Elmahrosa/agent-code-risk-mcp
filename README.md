@@ -116,12 +116,12 @@ $0.25 is execution-time insurance.
 
 ## 🚀 Quick Start
 
-### Call `/analyze` (payment enforced)
+### Without Payment (Returns 402)
 
 ```bash
 curl -X POST https://app.teosegypt.com/analyze \
   -H "Content-Type: application/json" \
-  -d '{"code":"eval(userInput)","mode":"basic"}'
+  -d '{"code":"eval(userInput)","mode":"pipeline"}'
 ```
 
 **Response (402):**
@@ -132,28 +132,30 @@ curl -X POST https://app.teosegypt.com/analyze \
   "x402-version": 1,
   "accepts": [{
     "network": "eip155:8453",
-    "maxAmountRequired": "0.25",
+    "maxAmountRequired": "1.00",
     "resource": "usdc:0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913",
     "payTo": "0x6CB857A62f6a55239D67C6bD1A8ed5671605566D"
   }]
 }
 ```
 
-### Retry with Payment Proof
+### With Payment (Retry with tx hash)
 
 ```bash
 curl -X POST https://app.teosegypt.com/analyze \
   -H "Content-Type: application/json" \
-  -H "x-payment: <TX_HASH>" \
-  -d '{"code":"eval(userInput)","mode":"basic"}'
+  -H "x-payment: 0xYOUR_TX_HASH" \
+  -d '{"code":"eval(userInput)","mode":"pipeline"}'
 ```
 
-**Response:**
+> Expected: `decision: "BLOCK"` and `overallRisk: "critical"` for `eval(...)`.
+
+**Example response:**
 
 ```json
 {
-  "tier": "basic",
-  "price_preview": 0.25,
+  "tier": "pipeline",
+  "price_preview": 1.0,
   "payment_required": true,
   "result": {
     "decision": "BLOCK",
@@ -274,8 +276,8 @@ MIT — free to use, modify, deploy, and monetize.
 
 **Live:** [https://app.teosegypt.com](https://app.teosegypt.com)
 
-⭐ **Star on GitHub**  [https://github.com/Elmahrosa/agent-code-risk-mcp)](https://github.com/Elmahrosa/agent-code-risk-mcp)
+⭐ **Star on GitHub:** [https://github.com/Elmahrosa/agent-code-risk-mcp](https://github.com/Elmahrosa/agent-code-risk-mcp)
 
-                       Powered by TEOS Labs | Egyptian heritage meets blockchain governance
+Powered by TEOS Labs | Egyptian heritage meets blockchain governance
+
 </div>
-
