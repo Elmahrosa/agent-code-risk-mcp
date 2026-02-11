@@ -1,6 +1,5 @@
 // src/http/x402Verify.ts
 import { stats } from "./stats";
-
 import { type Request, type Response, type NextFunction } from "express";
 import { config } from "../config";
 
@@ -187,9 +186,6 @@ export async function x402PaymentGate(
     }
 
     (req as any).x402 = { tier, verified: true };
+    stats.paidRequests++;  // ← THIS IS THE CRITICAL LINE
     next();
-  } catch (err) {
-    console.error("[x402] Verification error:", err);
-    res.status(500).json({ error: "Payment verification internal error" });
-  }
-}
+  } catch (e
