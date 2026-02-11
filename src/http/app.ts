@@ -1,4 +1,5 @@
 // src/http/app.ts
+import { stats } from "./stats";
 import dotenv from "dotenv";
 dotenv.config();
 
