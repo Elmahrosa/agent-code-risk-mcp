@@ -1,5 +1,3 @@
-// src/http/app.ts
-import { stats } from "./stats";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -8,6 +6,7 @@ import { config, printConfig } from "../config";
 import { x402PaymentGate } from "./x402Verify";
 import { analyzeCode } from "../tools/analyzeCode";
 import { scanDependencies } from "../tools/scanDependencies";
+import { stats, maybeReset24h } from "./stats";  // ✅ STATS IMPORT
 
 const BUILD_FINGERPRINT = "2026-02-08T15:00Z-pricing-v1";
 
@@ -35,6 +34,7 @@ app.get("/", (_req: Request, res: Response) => {
         <ul>
           <li>GET <code>/health</code></li>
           <li>GET <code>/pricing</code></li>
+          <li>GET <code>/stats</code></li>  <!-- ✅ NEW -->
           <li>POST <code>/analyze</code> (body.mode: basic|premium|pipeline)</li>
           <li>POST <code>/scan-dependencies</code></li>
         </ul>
@@ -53,12 +53,12 @@ app.get("/health", (_req: Request, res: Response) => {
     build: BUILD_FINGERPRINT,
     network: config.networkId,
     verifyOnChain: config.verifyOnChain,
-    mode: (config as any).teosMode, // requires config.ts additions
-    requirePayment: (config as any).requirePayment, // requires config.ts additions
+    mode: (config as any).teosMode,
+    requirePayment: (config as any).requirePayment,
     prices: {
       basic: Number(config.priceBasic),
       premium: Number(config.pricePremium),
-      pipeline: Number((config as any).pricePipeline), // requires config.ts additions
+      pipeline: Number((config as any).pricePipeline),
     },
     timestamp: new Date().toISOString(),
   });
@@ -70,8 +70,8 @@ app.get("/health", (_req: Request, res: Response) => {
 app.get("/pricing", (_req: Request, res: Response) => {
   res.json({
     build: BUILD_FINGERPRINT,
-    mode: (config as any).teosMode, // requires config.ts additions
-    requirePayment: (config as any).requirePayment, // requires config.ts additions
+    mode: (config as any).teosMode,
+    requirePayment: (config as any).requirePayment,
     network: {
       id: config.networkId,
       name: config.network.name,
@@ -88,8 +88,38 @@ app.get("/pricing", (_req: Request, res: Response) => {
     prices: {
       basic: Number(config.priceBasic),
       premium: Number(config.pricePremium),
-      pipeline: Number((config as any).pricePipeline), // requires config.ts additions
+      pipeline: Number((config as any).pricePipeline),
     },
+  });
+});
+
+// ───────────────────────────────────────────────
+// Stats endpoint (public, read-only) ✅ NEW
+// ───────────────────────────────────────────────
+app.get("/stats", (_req: Request, res: Response) => {
+  maybeReset24h();
+  res.json({
+    status: "ok",
+    network: config.networkId,
+    mode: (config as any).teosMode || "live",
+    requirePayment: Boolean((config as any).requirePayment),
+    usage: {
+      total_requests: stats.totalRequests,
+      unique_ips: stats.uniqueIps.size,
+      paid_requests: stats.paidRequests,
+      blocked_decisions: stats.blockedDecisions,
+    },
+    pricing: {
+      basic: Number(config.priceBasic),
+      premium: Number(config.pricePremium),
+      pipeline: Number((config as any).pricePipeline),
+    },
+    last_24h: {
+      requests: stats.last24h.requests,
+      blocked: stats.last24h.blocked,
+      window_start: new Date(stats.last24h.windowStartMs).toISOString(),
+    },
+    updated_at: new Date().toISOString(),
   });
 });
 
@@ -101,6 +131,18 @@ app.post(
   x402PaymentGate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // ✅ STATS TRACKING
+      maybeReset24h();
+      stats.totalRequests++;
+      stats.last24h.requests++;
+      
+      const ip =
+        (req.headers["cf-connecting-ip"] as string) ||
+        (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
+        req.ip ||
+        "unknown";
+      stats.uniqueIps.add(ip);
+      
       const { code, language, context, mode } = req.body;
 
       if (!code || typeof code !== "string") {
@@ -119,6 +161,12 @@ app.post(
           : Number(config.priceBasic);
 
       const result = await analyzeCode(code, language, context);
+
+      // ✅ BLOCKED DECISIONS TRACKING
+      if (result?.overallRisk === "critical") {
+        stats.blockedDecisions++;
+        stats.last24h.blocked++;
+      }
 
       const teosMode = (config as any).teosMode;
       const requirePayment = (config as any).requirePayment;
