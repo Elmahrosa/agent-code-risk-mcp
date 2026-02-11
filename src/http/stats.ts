@@ -17,8 +17,8 @@ export const stats: StatsData = {
   paidRequests: 0,
   blockedDecisions: 0,
   last24h: {
-    requests: number;
-    blocked: number;
+    requests: 0,
+    blocked: 0,
     windowStartMs: Date.now(),
   },
 };
