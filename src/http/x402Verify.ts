@@ -1,4 +1,6 @@
 // src/http/x402Verify.ts
+import { stats } from "./stats";
+
 import { type Request, type Response, type NextFunction } from "express";
 import { config } from "../config";
 
