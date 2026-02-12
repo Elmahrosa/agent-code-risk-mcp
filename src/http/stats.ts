@@ -1,35 +1,47 @@
-// src/http/stats.ts
-export interface StatsData {
+cat > src/http/stats.ts <<'EOF'
+export type Last24hWindow = {
+  requests: number;
+  blocked: number;
+  windowStart: string;
+};
+
+export type StatsStore = {
+  // Lifetime counters (per instance)
   totalRequests: number;
-  uniqueIps: Set<string>;
   paidRequests: number;
   blockedDecisions: number;
-  last24h: {
-    requests: number;
-    blocked: number;
-    windowStartMs: number;
-  };
-}
 
-export const stats: StatsData = {
+  // Unique IPs (per instance)
+  uniqueIps: Set<string>;
+
+  // Rolling 24h window (per instance)
+  last24h: Last24hWindow;
+};
+
+export const stats: StatsStore = {
   totalRequests: 0,
-  uniqueIps: new Set<string>(),
   paidRequests: 0,
   blockedDecisions: 0,
+  uniqueIps: new Set<string>(),
   last24h: {
     requests: 0,
     blocked: 0,
-    windowStartMs: Date.now(),
+    windowStart: new Date().toISOString(),
   },
 };
 
-export function maybeReset24h() {
+// Reset rolling window every 24 hours (per instance)
+export function maybeReset24h(): void {
   const now = Date.now();
-  const dayMs = 24 * 60 * 60 * 1000;
+  const start = Date.parse(stats.last24h.windowStart);
+  const HOURS_24 = 24 * 60 * 60 * 1000;
 
-  if (now - stats.last24h.windowStartMs >= dayMs) {
-    stats.last24h.requests = 0;
-    stats.last24h.blocked = 0;
-    stats.last24h.windowStartMs = now;
-  }
+  if (Number.isFinite(start) && now - start < HOURS_24) return;
+
+  stats.last24h = {
+    requests: 0,
+    blocked: 0,
+    windowStart: new Date().toISOString(),
+  };
 }
+EOF
