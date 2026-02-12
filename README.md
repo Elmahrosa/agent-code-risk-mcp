@@ -4,88 +4,89 @@
 
 ### *Decision Firewall for Autonomous Systems*
 
-> **Fail-Fast is Key**  
-> In autonomous systems, delayed detection equals damage.  
-> Agent Code Risk MCP **blocks unsafe decisions immediately** — not after execution.
-> 
-**Agent Code Risk MCP prevents these failures BEFORE execution.**  
-*Real-time enforcement — not retrospective scanning.*
+> **Fail-Fast is Key**
+> In autonomous systems, delayed detection equals damage.
+> Agent Code Risk MCP **blocks unsafe decisions before execution**.
+
+**Real-time enforcement — not retrospective scanning.**
 
 ![Governance Primitive](https://img.shields.io/badge/Category-Governance%20Primitive-gold?style=flat-square)
-[![Live API](https://img.shields.io/badge/Live%20API-✅%20Online-brightgreen?style=flat-square)](https://app.teosegypt.com/health)
-[![Pricing](https://img.shields.io/badge/Pricing-$0.25--$1.00-1E90FF?style=flat-square&logo=usdcoin&logoColor=white)](https://app.teosegypt.com/pricing)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![Live API](https://img.shields.io/badge/Live%20API-Online-brightgreen?style=flat-square)](https://app.teosegypt.com/health)
+[![Pricing](https://img.shields.io/badge/Pricing-0.25--1.00%20USDC-1E90FF?style=flat-square\&logo=usdcoin\&logoColor=white)](https://app.teosegypt.com/pricing)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-007ACC?style=flat-square\&logo=typescript\&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen?style=flat-square)](LICENSE)
 
 🔗 [Live API](https://app.teosegypt.com) · [Pricing](https://app.teosegypt.com/pricing) · 🔐 [Security Model](SECURITY.md)
 
 </div>
 
-**Autonomous systems fail differently than humans.**
+---
 
-🔴 **Agent leaks API key** → $10K+ stolen compute  
-🔴 **Agent breaks authentication** → $100K data breach  
-🔴 **Agent violates compliance** → $1M+ regulatory fine  
+## Why This Exists
 
-*These are not bugs. These are autonomous decisions executed without governance.*
+Autonomous systems fail differently than humans.
 
+* Agent leaks API key → compute theft
+* Agent breaks authentication → data exposure
+* Agent violates compliance → regulatory risk
+
+These are not bugs.
+They are machine-executed decisions without governance.
+
+TeosMcp enforces deterministic decision control.
 
 ---
 
-## 🔐 Deterministic Governance (Why This Is Different)
+## 🔐 Deterministic Governance
 
-Agent Code Risk MCP is **not a scanner**.  
-It is a **deterministic decision system**.
+Agent Code Risk MCP is **not a scanner**.
+It is a **detinistic enforcement layer**.
 
-**Same input → same output → provable enforcement**
+**Same input → same output → provable outcome**
 
-- 🔒 Deterministic results (no stochastic AI behavior)  
-- 🧾 Machine-readable decisions: `ALLOW | WARN | BLOCK`  
-- 🔏 Governance-ready, auditable outcomes  
-- ⚡ Fail-fast by design — no execution on CRITICAL risk  
+* Deterministic results (no stochastic AI behavior)
+* Machine-readable decisions: `ALLOW | WARN | BLOCK`
+* Audit-ready structured responses
+* Fail-fast on CRITICAL risk
 
-> Machine-enforceable first. Human-readable second.
+Machine-enforceable first. Human-readable second.
 
 ---
 
 ## 🎯 What It Does
 
-**Agent Code Risk MCP** is a **production-grade decision firewall** that:
+TeosMcp is a production-grade decision firewall that:
 
-- Blocks `eval()`, secrets, injections **before execution**
-- Returns **machine-readable enforcement decisions**
-- Enforces access via **x402 pay-per-decision** (USDC on Base)
-- Integrates with AI agents, CI/CD, and autonomous systems
+* Blocks `eval()`, secret exposure, injection patterns **before execution**
+* Returns structured enforcement decisions
+* Enforces access via **x402 pay-per-decision (USDC on Base)**
+* Integrates with AI agents, CI/CD, and autonomous systems
 
+```text
+Agent generates code → MCP analyzes → ALLOW | WARN | BLOCK → Safe execution
 ```
-
-Agent generates code → MCP → BLOCK / ALLOW → Safe execution
-↓
-Governance enforced
-
-````
 
 ---
 
 ## 👥 Who Uses This
 
-| Role | Problem Solved | Integration |
-|----|----|----|
-| AI Builders | Unsafe agent code | Claude MCP |
-| DevOps | Risky PRs | GitHub Actions |
-| Security Teams | Enforcement vs reporting | /analyze API |
-| Web3 / DeFi | Autonomous execution risk | Pre-deploy gate |
-| Founders | Agent-caused outages | Zero-trust |
+| Role           | Problem Solved            | Integration     |
+| -------------- | ------------------------- | --------------- |
+| AI Builders    | Unsafe agent output       | Claude MCP      |
+| DevOps         | Risky pull requests       | GitHub Actions  |
+| Security Teams | Enforcement vs reporting  | `/analyze` API  |
+| Web3 / DeFi    | Autonomous execution risk | Pre-deploy gate |
+| Founders       | Agent-caused outages      | Zero-trust      |
 
 ---
 
-## 🛡️ Enforcement Model
+## 🛡 Enforcement Model
 
-| Severity | Triggers | Response |
-|-------|---------|---------|
-| 🔴 CRITICAL | `eval()`, secrets, injections | BLOCK |
-| 🟠 HIGH | XSS, SSRF, prototype pollution | Premium BLOCK |
-| 🟡 MEDIUM | Debug code, weak crypto | WARN |
+| Severity    | Triggers                       | Response        |
+| ----------- | ------------------------------ | --------------- |
+| 🔴 CRITICAL | `eval()`, secrets, injections  | BLOCK           |
+| 🟠 HIGH     | XSS, SSRF, prototype pollution | BLOCK (Premium) |
+| 🟡 MEDIUM   | Weak crypto, debug code        | WARN            |
 
 See **SECURITY.md** for the full threat model.
 
@@ -93,13 +94,13 @@ See **SECURITY.md** for the full threat model.
 
 ## 💰 Pricing (Per Decision)
 
-| Tier | Price (USDC) | Use Case |
-|----|----|----|
-| Basic | $0.25 | Agent runtime |
-| Premium | $0.50 | High-assurance |
-| Pipeline | $1.00 | CI/CD gates |
+| Tier     | Price (USDC) | Use Case       |
+| -------- | ------------ | -------------- |
+| Basic    | 0.25         | Agent runtime  |
+| Premium  | 0.50         | High-assurance |
+| Pipeline | 1.00         | CI/CD gates    |
 
-**We don’t price scans. We price decisions.**
+**We price decisions — not scans.**
 
 ---
 
@@ -111,7 +112,7 @@ See **SECURITY.md** for the full threat model.
 curl -X POST https://app.teosegypt.com/analyze \
   -H "Content-Type: application/json" \
   -d '{"code":"eval(userInput)","mode":"pipeline"}'
-````
+```
 
 ### With Payment
 
@@ -122,11 +123,36 @@ curl -X POST https://app.teosegypt.com/analyze \
   -d '{"code":"eval(userInput)","mode":"pipeline"}'
 ```
 
-Expected result: **BLOCK (critical)**.
+Expected result:
+
+```
+BLOCK (critical)
+```
 
 ---
 
-## 🔌 CI/CD Integration
+## 📊 Live Usage Stats
+
+Public, read-only enforcement metrics:
+
+```bash
+curl https://app.teosegypt.com/stats
+```
+
+Shows:
+
+* Total requests processed
+* Blocked decisions
+* Paid x402 requests
+* Last 24-hour activity
+
+No accounts. No user data. Enforcement metrics only.
+
+This endpoint verifies the system is actively enforcing decisions in production.
+
+---
+
+## 🔌 CI/CD Integration Example
 
 ```yaml
 - name: Agent Security Gate
@@ -144,7 +170,7 @@ Expected result: **BLOCK (critical)**.
 
 ---
 
-## ⚙️ Runtime Configuration
+## ⚙ Runtime Configuration
 
 ```env
 TEOS_MODE=production
@@ -170,43 +196,38 @@ PORT=8000
 
 **Critical:** eval, secrets, SQL/command injection
 **High:** XSS, SSRF, prototype pollution
-**Medium:** weak crypto, insecure config
+**Medium:** weak crypto, insecure configuration
 
 ---
 
 ## 🔒 Non-Goals
 
 * Not a full static analysis replacement
-* Not business-logic auditing
-* No auto-fixing or rewriting
+* No business-logic auditing
+* No auto-rewriting
 
-**Purpose:** block unsafe autonomous decisions **before damage**.
-
----
-
-## 📄 License
-
-MIT — free to use, modify, deploy, and monetize.
+Purpose: block unsafe autonomous decisions **before damage**.
 
 ---
 
-## 🔒 README-LOCK (Cryptographic Integrity)
-
-**Purpose:** Prevent supply-chain tampering of governance instructions.
+## 🔐 README-LOCK (Supply-Chain Integrity)
 
 ```
 SHA256 (README.md): ef2d127de37b942baad06145e54b0c619a1f22327b2ebbcfbec78f5564b64849
 TEOS-LOCK: v1::prod::8453::0x6CB857A62f6a55239D67C6bD1A8ed5671605566D
 ```
 
-**Policy:**
-If README hash ≠ expected → **BLOCK execution**.
+If README hash ≠ expected → enforcement must fail.
 
 ---
 
-## 🔐 CI Enforcement (REQUIRED)
+## 🔐 CI Enforcement
 
-Create `scripts/verify-readme-lock.sh`
+Create:
+
+```
+scripts/verify-readme-lock.sh
+```
 
 ```bash
 #!/bin/bash
@@ -223,7 +244,7 @@ fi
 echo "✅ README-LOCK VERIFIED"
 ```
 
-**GitHub Actions:**
+GitHub Action:
 
 ```yaml
 - name: Verify README-LOCK
@@ -234,10 +255,7 @@ echo "✅ README-LOCK VERIFIED"
 
 <div align="center">
 
-🏺 **Governance for the Autonomous Era**
-
-*Block before damage. Execute with confidence.*
-
+🏺 Governance for the Autonomous Era
 Live: [https://app.teosegypt.com](https://app.teosegypt.com)
 
 </div>
