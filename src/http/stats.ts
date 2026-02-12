@@ -1,20 +1,14 @@
-cat > src/http/stats.ts <<'EOF'
 export type Last24hWindow = {
   requests: number;
   blocked: number;
-  windowStart: string;
+  windowStart: string; // ISO string
 };
 
 export type StatsStore = {
-  // Lifetime counters (per instance)
   totalRequests: number;
   paidRequests: number;
   blockedDecisions: number;
-
-  // Unique IPs (per instance)
   uniqueIps: Set<string>;
-
-  // Rolling 24h window (per instance)
   last24h: Last24hWindow;
 };
 
@@ -30,13 +24,12 @@ export const stats: StatsStore = {
   },
 };
 
-// Reset rolling window every 24 hours (per instance)
 export function maybeReset24h(): void {
   const now = Date.now();
   const start = Date.parse(stats.last24h.windowStart);
-  const HOURS_24 = 24 * 60 * 60 * 1000;
+  const WINDOW_MS = 24 * 60 * 60 * 1000;
 
-  if (Number.isFinite(start) && now - start < HOURS_24) return;
+  if (Number.isFinite(start) && now - start < WINDOW_MS) return;
 
   stats.last24h = {
     requests: 0,
@@ -44,4 +37,3 @@ export function maybeReset24h(): void {
     windowStart: new Date().toISOString(),
   };
 }
-EOF
