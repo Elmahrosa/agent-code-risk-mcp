@@ -6,12 +6,14 @@ import { config, printConfig } from "../config";
 import { x402PaymentGate } from "./x402Verify";
 import { analyzeCode } from "../tools/analyzeCode";
 import { scanDependencies } from "../tools/scanDependencies";
-import { stats, maybeReset24h } from "./stats";  // ✅ STATS IMPORT
+import { stats, maybeReset24h } from "./stats";
+import { trackStats } from "./trackStats";
 
 const BUILD_FINGERPRINT = "2026-02-08T15:00Z-pricing-v1";
 
 const app = express();
 app.use(express.json({ limit: "1mb" }));
+app.set("trust proxy", 1);
 
 // ─────────────────────────────────────────────
 // Root landing page
@@ -34,7 +36,7 @@ app.get("/", (_req: Request, res: Response) => {
         <ul>
           <li>GET <code>/health</code></li>
           <li>GET <code>/pricing</code></li>
-          <li>GET <code>/stats</code></li>  <!-- ✅ NEW -->
+          <li>GET <code>/stats</code></li>
           <li>POST <code>/analyze</code> (body.mode: basic|premium|pipeline)</li>
           <li>POST <code>/scan-dependencies</code></li>
         </ul>
@@ -93,11 +95,12 @@ app.get("/pricing", (_req: Request, res: Response) => {
   });
 });
 
-// ───────────────────────────────────────────────
-// Stats endpoint (public, read-only) ✅ NEW
-// ───────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// Stats endpoint (public, read-only)
+// ─────────────────────────────────────────────
 app.get("/stats", (_req: Request, res: Response) => {
   maybeReset24h();
+
   res.json({
     status: "ok",
     network: config.networkId,
@@ -117,32 +120,21 @@ app.get("/stats", (_req: Request, res: Response) => {
     last_24h: {
       requests: stats.last24h.requests,
       blocked: stats.last24h.blocked,
-      window_start: new Date(stats.last24h.windowStartMs).toISOString(),
+      window_start: stats.last24h.windowStart,
     },
     updated_at: new Date().toISOString(),
   });
 });
 
 // ─────────────────────────────────────────────
-// Analyze code (paid via x402 unless test mode)
+// Analyze code (trackStats runs BEFORE x402 gate)
 // ─────────────────────────────────────────────
 app.post(
   "/analyze",
+  trackStats,
   x402PaymentGate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      // ✅ STATS TRACKING
-      maybeReset24h();
-      stats.totalRequests++;
-      stats.last24h.requests++;
-      
-      const ip =
-        (req.headers["cf-connecting-ip"] as string) ||
-        (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() ||
-        req.ip ||
-        "unknown";
-      stats.uniqueIps.add(ip);
-      
       const { code, language, context, mode } = req.body;
 
       if (!code || typeof code !== "string") {
@@ -162,7 +154,7 @@ app.post(
 
       const result = await analyzeCode(code, language, context);
 
-      // ✅ BLOCKED DECISIONS TRACKING
+      // Count blocked decisions (only when we actually analyzed)
       if (result?.overallRisk === "critical") {
         stats.blockedDecisions++;
         stats.last24h.blocked++;
@@ -184,10 +176,11 @@ app.post(
 );
 
 // ─────────────────────────────────────────────
-// Scan dependencies (paid via x402 unless test mode)
+// Scan dependencies (trackStats runs BEFORE x402 gate)
 // ─────────────────────────────────────────────
 app.post(
   "/scan-dependencies",
+  trackStats,
   x402PaymentGate,
   async (req: Request, res: Response, next: NextFunction) => {
     try {
