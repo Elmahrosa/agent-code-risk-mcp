@@ -3,11 +3,8 @@ import { maybeReset24h, stats } from "./stats";
 
 export function trackStats(req: Request, _res: Response, next: NextFunction) {
   maybeReset24h();
-<<<<<<< HEAD
 
   // Count every request (including 402 responses from x402 gate)
-=======
->>>>>>> 4de7caf (chore: finalize stats tracking implementation)
   stats.totalRequests++;
   stats.last24h.requests++;
 
@@ -18,9 +15,6 @@ export function trackStats(req: Request, _res: Response, next: NextFunction) {
     "unknown";
 
   stats.uniqueIps.add(ip);
-<<<<<<< HEAD
 
-=======
->>>>>>> 4de7caf (chore: finalize stats tracking implementation)
   next();
 }
