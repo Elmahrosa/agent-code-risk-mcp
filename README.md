@@ -314,6 +314,7 @@ MIT License — Free to use, modify, deploy, and monetize.
 
 See [LICENSE](LICENSE) for details.
 
+Open-source code is MIT licensed. Hosted API access is provided as a separate commercial service.
 ---
 
 <div align="center">
