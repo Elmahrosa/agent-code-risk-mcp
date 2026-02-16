@@ -1,3 +1,4 @@
+// src/http/x402Verify.ts
 import { Request, Response, NextFunction } from "express";
 import { config } from "../config";
 import { stats } from "./stats";
@@ -50,10 +51,8 @@ export async function x402PaymentGate(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-
   // ✅ TRUSTED TELEGRAM BOT BYPASS (SAFE)
-  // Bot must send header: x-teos-bot-key: <TEOS_BOT_KEY>
-  // This keeps production paywall active for everyone else.
+  // Bot must send: x-teos-bot-key: <TEOS_BOT_KEY>
   const expectedBotKey = process.env.TEOS_BOT_KEY || "";
   const receivedBotKey = String(req.headers["x-teos-bot-key"] || "");
 
@@ -67,7 +66,7 @@ export async function x402PaymentGate(
       bypass: true,
     };
 
-    // Optional: keep stats consistent (counts as a request, not a paid request)
+    // Keep some stats consistent
     stats.totalRequests++;
     next();
     return;
@@ -109,8 +108,7 @@ export async function x402PaymentGate(
         return;
       }
 
-      // NOTE: Your full on-chain verification logic can go here.
-      // For now, assume valid format = valid.
+      // TODO: add real on-chain verification later
       verified = true;
 
       if (verified) usedTxHashes.add(txHashLower);
@@ -124,9 +122,8 @@ export async function x402PaymentGate(
     }
 
     (req as any).x402 = { tier, verified: true };
-    stats.paidRequests++; // ✅ stats increment
+    stats.paidRequests++;
     next();
-
   } catch (err) {
     console.error("[x402] Verification error:", err);
     res.status(500).json({ error: "Internal payment verification error" });
