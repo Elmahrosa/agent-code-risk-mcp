@@ -1,4 +1,3 @@
-// src/http/x402Verify.ts
 import { Request, Response, NextFunction } from "express";
 import { config } from "../config";
 import { stats } from "./stats";
@@ -26,19 +25,7 @@ function send402(res: Response, tier: PriceTier): void {
   const price = priceForTier(tier);
   res.status(402).json({
     error: "Payment Required",
-    "x402-version": 1,
-    accepts: [
-      {
-        scheme: "exact",
-        network: config.networkId,
-        maxAmountRequired: price,
-        resource: `usdc:${config.usdcAddress}`,
-        payTo: config.payTo,
-        maxTimeoutSeconds: 60,
-        extra: { name: "USDC", decimals: 6 },
-      },
-    ],
-    description: `Pay $${price} USDC on ${config.network.name} to access this endpoint (${tier} tier).`,
+    description: `Pay $${price} USDC on ${config.network.name} to access this endpoint.`,
   });
 }
 
@@ -51,30 +38,26 @@ export async function x402PaymentGate(
   res: Response,
   next: NextFunction
 ): Promise<void> {
-  // ✅ TRUSTED TELEGRAM BOT BYPASS (SAFE)
-  // Bot must send: x-teos-bot-key: <TEOS_BOT_KEY>
+
+  // ✅ TELEGRAM BOT TRUSTED BYPASS
   const expectedBotKey = process.env.TEOS_BOT_KEY || "";
   const receivedBotKey = String(req.headers["x-teos-bot-key"] || "");
 
-  if (expectedBotKey && receivedBotKey && receivedBotKey === expectedBotKey) {
-    const tier = tierForRequest(req);
-
+  if (expectedBotKey && receivedBotKey === expectedBotKey) {
     (req as any).x402 = {
-      tier,
+      tier: tierForRequest(req),
       verified: true,
       source: "telegram-bot",
       bypass: true,
     };
-
-    // Keep some stats consistent
     stats.totalRequests++;
     next();
     return;
   }
 
-  // ✅ HARD BYPASS: test mode or payment disabled
+  // Test mode bypass
   if (config.teosMode === "test" || config.requirePayment === false) {
-    (req as any).x402 = { tier: tierForRequest(req), verified: false, bypass: true };
+    (req as any).x402 = { tier: tierForRequest(req), verified: false };
     next();
     return;
   }
@@ -99,18 +82,12 @@ export async function x402PaymentGate(
       }
 
       const txHashLower = txHash.toLowerCase();
-
       if (usedTxHashes.has(txHashLower)) {
-        res.status(402).json({
-          error: "Payment Required",
-          reason: "Transaction already used.",
-        });
+        res.status(402).json({ error: "Transaction already used." });
         return;
       }
 
-      // TODO: add real on-chain verification later
       verified = true;
-
       if (verified) usedTxHashes.add(txHashLower);
     } else {
       verified = verifyHeaderOnly(paymentHeader);
@@ -124,6 +101,7 @@ export async function x402PaymentGate(
     (req as any).x402 = { tier, verified: true };
     stats.paidRequests++;
     next();
+
   } catch (err) {
     console.error("[x402] Verification error:", err);
     res.status(500).json({ error: "Internal payment verification error" });
