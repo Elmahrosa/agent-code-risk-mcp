@@ -1,4 +1,3 @@
-// src/http/x402Verify.ts
 import { Request, Response, NextFunction } from "express";
 import { config } from "../config";
 import { stats } from "./stats";
@@ -52,6 +51,29 @@ export async function x402PaymentGate(
   next: NextFunction
 ): Promise<void> {
 
+  // ✅ TRUSTED TELEGRAM BOT BYPASS (SAFE)
+  // Bot must send header: x-teos-bot-key: <TEOS_BOT_KEY>
+  // This keeps production paywall active for everyone else.
+  const expectedBotKey = process.env.TEOS_BOT_KEY || "";
+  const receivedBotKey = String(req.headers["x-teos-bot-key"] || "");
+
+  if (expectedBotKey && receivedBotKey && receivedBotKey === expectedBotKey) {
+    const tier = tierForRequest(req);
+
+    (req as any).x402 = {
+      tier,
+      verified: true,
+      source: "telegram-bot",
+      bypass: true,
+    };
+
+    // Optional: keep stats consistent (counts as a request, not a paid request)
+    stats.totalRequests++;
+    next();
+    return;
+  }
+
+  // ✅ HARD BYPASS: test mode or payment disabled
   if (config.teosMode === "test" || config.requirePayment === false) {
     (req as any).x402 = { tier: tierForRequest(req), verified: false, bypass: true };
     next();
@@ -102,7 +124,7 @@ export async function x402PaymentGate(
     }
 
     (req as any).x402 = { tier, verified: true };
-    stats.paidRequests++;  // ✅ stats increment
+    stats.paidRequests++; // ✅ stats increment
     next();
 
   } catch (err) {
