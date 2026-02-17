@@ -42,18 +42,12 @@ export async function x402PaymentGate(
 
   const tier = tierForRequest(req);
 
-  // ============================================
-  // ✅ TELEGRAM BOT TRUSTED BYPASS
-  // ============================================
+  // ==============================
+  // TELEGRAM BOT TRUSTED BYPASS
+  // ==============================
 
   const expectedBotKey = process.env.TEOS_BOT_KEY || "";
   const receivedBotKey = String(req.headers["x-teos-bot-key"] || "");
-
-  // TEMP DEBUG (remove after confirmed working)
-  console.log("==== BOT BYPASS CHECK ====");
-  console.log("EXPECTED KEY:", expectedBotKey);
-  console.log("RECEIVED KEY:", receivedBotKey);
-  console.log("==========================");
 
   if (expectedBotKey && receivedBotKey === expectedBotKey) {
     (req as any).x402 = {
@@ -64,26 +58,29 @@ export async function x402PaymentGate(
     };
 
     stats.totalRequests++;
-    return next();
+    next();
+    return;
   }
 
-  // ============================================
-  // 🧪 TEST MODE BYPASS
-  // ============================================
+  // ==============================
+  // TEST MODE BYPASS
+  // ==============================
 
   if (config.teosMode === "test" || config.requirePayment === false) {
     (req as any).x402 = { tier, verified: false };
-    return next();
+    next();
+    return;
   }
 
-  // ============================================
-  // 💳 STANDARD PAYMENT FLOW
-  // ============================================
+  // ==============================
+  // STANDARD PAYMENT FLOW
+  // ==============================
 
   const paymentHeader = req.headers["x-payment"] as string | undefined;
 
   if (!paymentHeader) {
-    return send402(res, tier);
+    send402(res, tier);
+    return;
   }
 
   try {
@@ -93,36 +90,38 @@ export async function x402PaymentGate(
       const txHash = paymentHeader;
 
       if (!/^0x[a-fA-F0-9]{64}$/.test(txHash)) {
-        return res.status(402).json({ error: "Invalid transaction hash format." });
+        res.status(402).json({ error: "Invalid transaction hash format." });
+        return;
       }
 
       const txHashLower = txHash.toLowerCase();
 
       if (usedTxHashes.has(txHashLower)) {
-        return res.status(402).json({ error: "Transaction already used." });
+        res.status(402).json({ error: "Transaction already used." });
+        return;
       }
 
       verified = true;
-
-      if (verified) {
-        usedTxHashes.add(txHashLower);
-      }
+      usedTxHashes.add(txHashLower);
 
     } else {
       verified = verifyHeaderOnly(paymentHeader);
     }
 
     if (!verified) {
-      return res.status(402).json({ error: "Payment verification failed" });
+      res.status(402).json({ error: "Payment verification failed" });
+      return;
     }
 
     (req as any).x402 = { tier, verified: true };
     stats.paidRequests++;
 
-    return next();
+    next();
+    return;
 
   } catch (err) {
     console.error("[x402] Verification error:", err);
-    return res.status(500).json({ error: "Internal payment verification error" });
+    res.status(500).json({ error: "Internal payment verification error" });
+    return;
   }
 }
