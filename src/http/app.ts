@@ -74,4 +74,182 @@ app.get("/ping", (_req: Request, res: Response) => {
 // Health
 // ─────────────────────────────────────────────
 //
-app.get("/health", (_req: Request
+app.get("/health", (_req: Request, res: Response) => {
+  res.json({
+    status: "ok",
+    version: "1.0.0",
+    build: BUILD_FINGERPRINT,
+    network: config.networkId,
+    verifyOnChain: config.verifyOnChain,
+    mode: (config as any).teosMode,
+    requirePayment: (config as any).requirePayment,
+    timestamp: new Date().toISOString(),
+  });
+});
+
+//
+// ─────────────────────────────────────────────
+// Pricing
+// ─────────────────────────────────────────────
+//
+app.get("/pricing", (_req: Request, res: Response) => {
+  res.json({
+    build: BUILD_FINGERPRINT,
+    network: {
+      id: config.networkId,
+      name: config.network.name,
+      chainId: config.network.chainId,
+    },
+    payment: {
+      token: "USDC",
+      contract: config.usdcAddress,
+      payTo: config.payTo,
+      confirmations: config.confirmations,
+      verifyOnChain: config.verifyOnChain,
+    },
+    prices: {
+      basic: Number(config.priceBasic),
+      premium: Number(config.pricePremium),
+      pipeline: Number((config as any).pricePipeline),
+    },
+  });
+});
+
+//
+// ─────────────────────────────────────────────
+// Stats
+// ─────────────────────────────────────────────
+//
+app.get("/stats", (_req: Request, res: Response) => {
+  maybeReset24h();
+
+  res.json({
+    usage: {
+      total_requests: stats.totalRequests,
+      unique_ips: stats.uniqueIps.size,
+      paid_requests: stats.paidRequests,
+      blocked_decisions: stats.blockedDecisions,
+    },
+    last_24h: stats.last24h,
+    updated_at: new Date().toISOString(),
+  });
+});
+
+//
+// ─────────────────────────────────────────────
+// Analyze Code
+// ─────────────────────────────────────────────
+//
+app.post(
+  "/analyze",
+  trackStats,
+  x402PaymentGate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { code, language, context, mode } = req.body;
+
+      if (!code || typeof code !== "string") {
+        return res.status(400).json({ error: "Missing `code` string in body" });
+      }
+
+      const tier =
+        mode === "premium"
+          ? "premium"
+          : mode === "pipeline"
+          ? "pipeline"
+          : "basic";
+
+      const price_preview =
+        tier === "premium"
+          ? Number(config.pricePremium)
+          : tier === "pipeline"
+          ? Number((config as any).pricePipeline)
+          : Number(config.priceBasic);
+
+      const result = await analyzeCode(code, language, context);
+
+      if (result?.overallRisk === "critical") {
+        stats.blockedDecisions++;
+        stats.last24h.blocked++;
+      }
+
+      res.json({
+        tier,
+        price_preview,
+        payment_required:
+          Boolean((config as any).requirePayment) &&
+          (config as any).teosMode !== "test",
+        result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+//
+// ─────────────────────────────────────────────
+// Scan Dependencies
+// ─────────────────────────────────────────────
+//
+app.post(
+  "/scan-dependencies",
+  trackStats,
+  x402PaymentGate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { manifest, lockfile } = req.body;
+
+      if (!manifest || typeof manifest !== "string") {
+        return res.status(400).json({ error: "Missing `manifest` string" });
+      }
+
+      const result = await scanDependencies(manifest, lockfile);
+
+      res.json({
+        tier: "premium",
+        price_preview: Number(config.pricePremium),
+        payment_required:
+          Boolean((config as any).requirePayment) &&
+          (config as any).teosMode !== "test",
+        result,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+//
+// ─────────────────────────────────────────────
+// 404 JSON
+// ─────────────────────────────────────────────
+//
+app.use((req: Request, res: Response) => {
+  res.status(404).json({ error: "Not Found", path: req.path });
+});
+
+//
+// ─────────────────────────────────────────────
+// Error Handler
+// ─────────────────────────────────────────────
+//
+app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error("[ERROR]", err.message, err.stack);
+  res.status(500).json({
+    error: "Internal server error",
+    message: err.message,
+  });
+});
+
+//
+// ─────────────────────────────────────────────
+// Start Server
+// ─────────────────────────────────────────────
+//
+app.listen(config.port, config.host, () => {
+  printConfig();
+  console.log(`\n🚀  HTTP server listening on ${config.host}:${config.port}\n`);
+});
+
+export { app };
