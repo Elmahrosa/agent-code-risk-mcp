@@ -2,26 +2,30 @@
 
 # 🏺 Agent Code Risk MCP — TeosMcp
 
-### *Decision Firewall for Autonomous Systems*
+### Decision Firewall for Autonomous Systems
 
-> **Fail-Fast is Key**  
-> In autonomous systems, delayed detection equals damage.  
-> Agent Code Risk MCP **blocks unsafe decisions before execution**.
+> **Fail Fast. Enforce Early.**
+>  
+> In autonomous systems, delayed detection equals irreversible damage.  
+> Agent Code Risk MCP blocks unsafe decisions **before merge, deploy, or execution**.
 
-**Real-time enforcement — not retrospective scanning.**
+**Real-time governance enforcement — not retrospective scanning.**
 
-![Governance Primitive](https://img.shields.io/badge/Category-Governance%20Primitive-gold?style=flat-square)
+![Governance Primitive](https://img.shields.io/badge/Category-Agent%20Governance%20Primitive-gold?style=flat-square)
 [![Live API](https://img.shields.io/badge/Live%20API-Online-brightgreen?style=flat-square)](https://app.teosegypt.com/health)
-[![Pricing](https://img.shields.io/badge/Pricing-0.25--1.00%20USDC-1E90FF?style=flat-square&logo=usdcoin&logoColor=white)](https://app.teosegypt.com/pricing)
+[![Pricing](https://img.shields.io/badge/Pricing-Usage--Based%20USDC-1E90FF?style=flat-square&logo=usdcoin&logoColor=white)](https://app.teosegypt.com/pricing)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen?style=flat-square)](LICENSE)
-https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml/badge.svg
-🔗 [Live API](https://app.teosegypt.com) · [Pricing](https://app.teosegypt.com/pricing) · 🔐 [Security Model](SECURITY.md) · 📊 [Live Stats](https://app.teosegypt.com/stats)
+[![E2E Smoke Test](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml/badge.svg)](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml)
+
+🔗 [Live API](https://app.teosegypt.com) · 
+💳 [Pricing](https://app.teosegypt.com/pricing) · 
+🔐 [Security Model](SECURITY.md) · 
+📊 [Live Stats](https://app.teosegypt.com/stats)
 
 </div>
 
 ---
-
 ## Why This Exists
 
 Autonomous systems fail differently than humans.
