@@ -17,7 +17,8 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen?style=flat-square)](LICENSE)
 [![E2E Smoke Test](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml/badge.svg)](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml)
-
+Available on MCP.so  
+https://mcp.so/server/teos-mcp-%E2%80%94-agent-code-risk-firewall/Elmahrosa
 🔗 [Live API](https://app.teosegypt.com) · 
 💳 [Pricing](https://app.teosegypt.com/pricing) · 
 🔐 [Security Model](SECURITY.md) · 
