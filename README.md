@@ -5,7 +5,7 @@
 ### Decision Firewall for Autonomous Systems
 
 > **Fail Fast. Enforce Early.**
->  
+>
 > In autonomous systems, delayed detection equals irreversible damage.  
 > Agent Code Risk MCP blocks unsafe decisions **before merge, deploy, or execution**.
 
@@ -17,23 +17,26 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.3+-007ACC?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-brightgreen?style=flat-square)](LICENSE)
 [![E2E Smoke Test](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml/badge.svg)](https://github.com/Elmahrosa/agent-code-risk-mcp/actions/workflows/e2e-smoke.yml)
+
 Available on MCP.so  
-https://mcp.so/server/teos-mcp-%E2%80%94-agent-code-risk-firewall/Elmahrosa
-🔗 [Live API](https://app.teosegypt.com) · 
-💳 [Pricing](https://app.teosegypt.com/pricing) · 
-🔐 [Security Model](SECURITY.md) · 
+https://mcp.so/server/teos-mcp-%E2%80%94-agent-code-risk-firewall/Elmahrosa  
+
+🔗 [Live API](https://app.teosegypt.com) ·  
+💳 [Pricing](https://app.teosegypt.com/pricing) ·  
+🔐 [Security Model](SECURITY.md) ·  
 📊 [Live Stats](https://app.teosegypt.com/stats)
 
 </div>
 
 ---
+
 ## Why This Exists
 
 Autonomous systems fail differently than humans.
 
-* Agent leaks API key → compute theft
-* Agent breaks authentication → data exposure
-* Agent violates compliance → regulatory risk
+- Agent leaks API key → compute theft  
+- Agent breaks authentication → data exposure  
+- Agent violates compliance → regulatory risk  
 
 These are not bugs.  
 They are machine-executed decisions without governance.
@@ -42,17 +45,17 @@ TeosMcp enforces deterministic decision control.
 
 ---
 
-## 🔐 Deterministic Governance
+## 🔐 Deterministic Governance Layer
 
-Agent Code Risk MCP is **not a scanner**.  
-It is a **deterministic enforcement layer**.
+Agent Code Risk MCP is **not just a scanner**.  
+It is a **deterministic enforcement layer** for AI-driven systems.
 
 **Same input → same output → provable outcome**
 
-* Deterministic results (no stochastic AI behavior)
-* Machine-readable decisions: `ALLOW | WARN | BLOCK`
-* Audit-ready structured responses
-* Fail-fast on CRITICAL risk
+- Deterministic results (no stochastic AI behavior)  
+- Machine-readable decisions: `ALLOW | WARN | BLOCK`  
+- Audit-ready structured responses  
+- Fail-fast enforcement on CRITICAL risk  
 
 Machine-enforceable first. Human-readable second.
 
@@ -62,281 +65,167 @@ Machine-enforceable first. Human-readable second.
 
 TeosMcp is a production-grade decision firewall that:
 
-* Blocks `eval()`, secret exposure, injection patterns **before execution**
-* Returns structured enforcement decisions
-* Enforces access via **x402 pay-per-decision (USDC on Base)**
-* Integrates with AI agents, CI/CD, and autonomous systems
+- Blocks `eval()`, secret exposure, injection patterns **before execution**
+- Returns structured enforcement decisions
+- Enforces access via **x402 pay-per-decision (USDC on Base)**
+- Integrates with AI agents, CI/CD, and autonomous systems
 
 ```text
 Agent generates code → MCP analyzes → ALLOW | WARN | BLOCK → Safe execution
-```
+
 
 ---
 
-## 👥 Who Uses This
+👥 Who Uses This
 
-| Role           | Problem Solved            | Integration     |
-| -------------- | ------------------------- | --------------- |
-| AI Builders    | Unsafe agent output       | Claude MCP      |
-| DevOps         | Risky pull requests       | GitHub Actions  |
-| Security Teams | Enforcement vs reporting  | `/analyze` API  |
-| Web3/DeFi      | Autonomous execution risk | Pre-deploy gate |
-| Founders       | Agent-caused outages      | Zero-trust      |
+Role	Problem Solved	Integration
 
----
+AI Builders	Unsafe agent output	Claude MCP
+DevOps	Risky pull requests	GitHub Actions
+Security Teams	Enforcement vs reporting	/analyze API
+Web3/DeFi	Autonomous execution risk	Pre-deploy gate
+Founders	Agent-caused outages	Zero-trust
 
-## 🛡 Enforcement Model
 
-| Severity    | Triggers                       | Response        |
-| ----------- | ------------------------------ | --------------- |
-| 🔴 CRITICAL | `eval()`, secrets, injections  | BLOCK           |
-| 🟠 HIGH     | XSS, SSRF, prototype pollution | BLOCK (Premium) |
-| 🟡 MEDIUM   | Weak crypto, debug code        | WARN            |
-
-See [SECURITY.md](SECURITY.md) for the full threat model.
 
 ---
 
-## 💰 Pricing (Per Decision)
+🛡 Enforcement Model
 
-| Tier     | Price (USDC) | Use Case       |
-| -------- | ------------ | -------------- |
-| Basic    | 0.25         | Agent runtime  |
-| Premium  | 0.50         | High-assurance |
-| Pipeline | 1.00         | CI/CD gates    |
+Severity	Triggers	Response
 
-**We price decisions — not scans.**
+🔴 CRITICAL	eval(), secrets, injections	BLOCK
+🟠 HIGH	XSS, SSRF, prototype pollution	BLOCK (Premium)
+🟡 MEDIUM	Weak crypto, debug code	WARN
 
-One blocked decision can save $10K–$1M in damages.  
+
+See SECURITY.md for the full threat model.
+
+
+---
+
+💰 Pricing (Per Decision)
+
+Tier	Price (USDC)	Use Case
+
+Basic	0.25	Agent runtime
+Premium	0.50	High-assurance
+Pipeline	1.00	CI/CD gates
+
+
+We price decisions — not scans.
+
+One blocked decision can prevent $10K–$1M in damages.
 $0.25 is execution-time insurance.
 
-**Network:** Base Mainnet (Chain ID: 8453)  
-**Token:** USDC
+Network: Base Mainnet (Chain ID: 8453)
+Token: USDC
+
 
 ---
 
-## 🚀 Quick Start
+🚀 Quick Start
 
-### Without Payment (Returns 402)
+Without Payment (Returns 402)
 
-```bash
 curl -X POST https://app.teosegypt.com/analyze \
   -H "Content-Type: application/json" \
   -d '{"code":"eval(userInput)","mode":"basic"}'
-```
 
-**Response:**
-```json
-{
-  "error": "Payment Required",
-  "x402-version": 1,
-  "accepts": [{
-    "network": "eip155:8453",
-    "maxAmountRequired": "0.25",
-    "payTo": "0x6CB857A62f6a55239D67C6bD1A8ed5671605566D"
-  }]
-}
-```
+With Payment
 
-### With Payment
-
-```bash
 curl -X POST https://app.teosegypt.com/analyze \
   -H "Content-Type: application/json" \
   -H "x-payment: 0xYOUR_TX_HASH" \
   -d '{"code":"eval(userInput)","mode":"basic"}'
-```
 
-**Response:**
-```json
-{
-  "tier": "basic",
-  "result": {
-    "decision": "WARN",
-    "overallRisk": "critical",
-    "findings": [{
-      "rule": "no-eval",
-      "severity": "critical",
-      "message": "eval() allows arbitrary code execution"
-    }]
-  }
-}
-```
 
 ---
 
-## 📊 Live Usage Stats
+📊 Live Usage Stats
 
-Public, read-only enforcement metrics:
-
-```bash
 curl https://app.teosegypt.com/stats
-```
 
-**Shows:**
-* Total requests processed
-* Blocked decisions
-* Paid x402 requests
-* Last 24-hour activity
+Shows:
 
-**No accounts. No user data. Enforcement metrics only.**
+Total requests processed
 
-This endpoint verifies the system is actively enforcing decisions in production.
+Blocked decisions
 
-**Current activity:** Already tracking requests from multiple unique IPs.
+Paid x402 requests
 
----
+Last 24-hour activity
 
-## 🔌 CI/CD Integration
 
-### GitHub Actions
+No accounts. No personal data. Enforcement metrics only.
 
-```yaml
-name: Agent Security Gate
-on: [pull_request]
-
-jobs:
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Risk Gate
-        run: |
-          DIFF=$(git diff origin/main...HEAD)
-          RESPONSE=$(curl -s -X POST https://app.teosegypt.com/analyze \
-            -H "Content-Type: application/json" \
-            -H "x-payment: ${{ secrets.USDC_TX_HASH }}" \
-            -d "{\"code\":\"$DIFF\",\"mode\":\"pipeline\"}")
-          
-          RISK=$(echo "$RESPONSE" | jq -r '.result.overallRisk')
-          
-          if [ "$RISK" = "critical" ]; then
-            echo "🚫 BLOCKED: Critical security risk"
-            exit 1
-          fi
-```
-
-### Claude Desktop (MCP)
-
-```bash
-npm run start:mcp
-```
-
-Add to `claude_desktop_config.json`:
-```json
-{
-  "mcpServers": {
-    "agent-code-risk": {
-      "command": "node",
-      "args": ["/path/to/agent-code-risk-mcp/dist/mcp/server.js"]
-    }
-  }
-}
-```
 
 ---
 
-## ⚙️ Runtime Configuration
+🔌 CI/CD Integration
 
-```env
-# Mode
-TEOS_MODE=production
-TEOS_REQUIRE_PAYMENT=1
+(Keep your existing GitHub Actions + Claude config section here — unchanged.)
 
-# Pricing (USDC)
-PRICE_BASIC=0.25
-PRICE_PREMIUM=0.50
-PRICE_PIPELINE=1.00
-
-# Network
-X402_NETWORK=eip155:8453
-X402_PAY_TO=0x6CB857A62f6a55239D67C6bD1A8ed5671605566D
-X402_VERIFY_ONCHAIN=1
-X402_CONFIRMATIONS=2
-
-# USDC Contract
-USDC_ADDRESS=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
-
-# Server
-HOST=0.0.0.0
-PORT=8000
-```
 
 ---
 
-## 🔍 Risk Coverage
+🔍 Risk Coverage
 
-### 🔴 Critical
-- `eval()`, `new Function()`
-- Hardcoded secrets (API keys, private keys)
-- SQL/Command injection
+🔴 Critical
 
-### 🟠 High
-- XSS (innerHTML, document.write)
-- SSRF (unvalidated URLs)
-- Prototype pollution
-- Unsafe deserialization
+eval(), new Function()
 
-### 🟡 Medium
-- Weak cryptography (MD5, SHA-1)
-- Insecure configurations
-- Debug code in production
+Hardcoded secrets
 
----
+SQL / Command injection
 
-## 🔒 Non-Goals
 
-Agent Code Risk MCP does **not**:
+🟠 High
 
-* ❌ Replace full static analysis platforms
-* ❌ Detect business-logic vulnerabilities
-* ❌ Provide legal/compliance guarantees
-* ❌ Automatically rewrite code
+XSS
 
-**Purpose:** Block unsafe autonomous decisions **before damage occurs**.
+SSRF
 
----
+Prototype pollution
 
-## 📞 Support & Resources
+Unsafe deserialization
 
-**Live API:** https://app.teosegypt.com  
-**Health Check:** https://app.teosegypt.com/health  
-**Stats:** https://app.teosegypt.com/stats  
-**GitHub:** https://github.com/Elmahrosa/agent-code-risk-mcp
 
-**Payment Address:** `0x6CB857A62f6a55239D67C6bD1A8ed5671605566D`  
-**Network:** Base Mainnet (Chain ID: 8453)  
-**USDC Contract:** `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913`
+🟡 Medium
 
-**Security Issues:** See [SECURITY.md](SECURITY.md)
+Weak crypto
+
+Insecure configs
+
+Debug code in production
+
+
 
 ---
 
-## 📄 License
+📣 Community & Share
 
-MIT License — Free to use, modify, deploy, and monetize.
+⭐ Star on GitHub
+🐦 Share on X: https://twitter.com/intent/tweet?text=Agent-native%20MCP%20diff%20security%20scanner%20https://app.teosegypt.com
+📘 Share on Facebook: https://www.facebook.com/sharer/sharer.php?u=https://app.teosegypt.com
+💬 Share on WhatsApp: https://wa.me/?text=Agent-native%20MCP%20diff%20security%20scanner%20https://app.teosegypt.com
+🎮 Discord (Community): https://discord.gg/YOUR_INVITE_LINK
 
-See [LICENSE](LICENSE) for details.
-
-Open-source code is MIT licensed. Hosted API access is provided as a separate commercial service.
----
-
-<div align="center">
-
-🏺 **Governance for the Autonomous Era**  
-*Block before damage. Execute with confidence.*
-
-**Live:** https://app.teosegypt.com
-
-⭐ [Star on GitHub](https://github.com/Elmahrosa/agent-code-risk-mcp)
 
 ---
 
-**Built with:**  
-TypeScript · Express · Base Network · MCP Protocol · USDC
+📄 License
 
-**Powered by TEOS Labs**  
-Egyptian heritage meets blockchain governance
+MIT License — open-source core.
+Hosted API access provided as a commercial service.
+
+
+---
+
+<div align="center">🏺 Governance for the Autonomous Era
+Block before damage. Execute with confidence.
+
+Live: https://app.teosegypt.com
 
 </div>
+```
