@@ -171,7 +171,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for details.
 
 ## Contact & Community
 
-- 🐦 X/Twitter: [@elmahrosa](https://x.com/elmahrosa)
+- 🐦 X/Twitter: [@king+teos](https://x.com/king_teos)
 - 🐛 Issues: Use GitHub Issues on any repo
 - 💼 Design partners: DM open (3 slots available)
 - 📧 Enterprise: Open a GitHub issue tagged `enterprise`
